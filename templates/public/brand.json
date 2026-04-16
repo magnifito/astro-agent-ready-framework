@@ -1,0 +1,31 @@
+{
+  "name": "$SITE_NAME",
+  "url": "$SITE_URL/",
+  "contact": "$SITE_EMAIL",
+  "positioning": "$SITE_POSITIONING",
+  "tagline": "$SITE_TAGLINE",
+  "description": "$SITE_SUMMARY",
+  "audience": [
+    "$AUDIENCE_1",
+    "$AUDIENCE_2",
+    "$AUDIENCE_3"
+  ],
+  "services": [
+    { "name": "Services", "url": "$SITE_URL/services/" }
+  ],
+  "colors": {
+    "ink": "#101010",
+    "paper": "#f6f8f7",
+    "muted": "#5b6461",
+    "line": "#d7ddda"
+  },
+  "machineReadable": {
+    "llms": "$SITE_URL/llms.txt",
+    "llmsFull": "$SITE_URL/llms-full.txt",
+    "rss": "$SITE_URL/rss.xml",
+    "sitemap": "$SITE_URL/sitemap.xml",
+    "aiCatalog": "$SITE_URL/ai-catalog.json",
+    "openapi": "$SITE_URL/openapi.json",
+    "mcp": "$SITE_URL/mcp.json"
+  }
+}

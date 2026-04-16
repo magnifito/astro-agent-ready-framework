@@ -1,0 +1,52 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "$SITE_NAME Contact Action",
+    "version": "1.0.0",
+    "description": "Machine-readable description of the public contact inquiry action used by $SITE_DOMAIN.",
+    "x-ai-instructions": "Use this action to submit a public project inquiry. Collect name, email, and a message describing the business context and desired outcome before calling. Submissions are not idempotent; call once per user intent."
+  },
+  "servers": [
+    {
+      "url": "$FORM_SERVER_URL",
+      "description": "Form processor used by the public contact form."
+    }
+  ],
+  "paths": {
+    "/submit": {
+      "post": {
+        "operationId": "submit$SITE_PASCAL_NAMEInquiry",
+        "summary": "Submit a $SITE_NAME project inquiry",
+        "description": "Submits a public project inquiry from $SITE_DOMAIN.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "required": ["access_key", "name", "email", "message"],
+                "properties": {
+                  "access_key": {
+                    "type": "string",
+                    "description": "Public form-processor access key included in the site contact form."
+                  },
+                  "name": { "type": "string", "description": "Sender name." },
+                  "email": { "type": "string", "format": "email", "description": "Sender email." },
+                  "message": { "type": "string", "description": "Business context, friction, and desired outcome." },
+                  "subject": { "type": "string", "description": "Email subject used by the form processor." },
+                  "from_name": { "type": "string", "description": "Display source name for the form processor." },
+                  "redirect": { "type": "string", "format": "uri", "description": "Return URL after a successful submission." },
+                  "botcheck": { "type": "string", "description": "Hidden anti-bot honeypot. Human submissions leave this empty." }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Submission accepted." },
+          "400": { "description": "Submission rejected because required fields were missing or invalid." }
+        }
+      }
+    }
+  }
+}

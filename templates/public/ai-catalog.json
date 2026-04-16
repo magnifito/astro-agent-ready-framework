@@ -1,0 +1,87 @@
+{
+  "name": "$SITE_NAME",
+  "url": "$SITE_URL/",
+  "updated": "$UPDATED_ISO_DATE",
+  "summary": "$SITE_SUMMARY",
+  "contact": {
+    "email": "$SITE_EMAIL",
+    "form": "$SITE_URL/#contact"
+  },
+  "resources": [
+    {
+      "type": "llms",
+      "title": "LLMs.txt",
+      "url": "$SITE_URL/llms.txt",
+      "description": "Concise site map and context for AI agents."
+    },
+    {
+      "type": "llms-full",
+      "title": "Full LLM context",
+      "url": "$SITE_URL/llms-full.txt",
+      "description": "Expanded company context, services, FAQ, and contact information."
+    },
+    {
+      "type": "markdown",
+      "title": "Homepage Markdown",
+      "url": "$SITE_URL/index.md",
+      "description": "Markdown version of the homepage generated at build time."
+    },
+    {
+      "type": "sitemap",
+      "title": "Sitemap",
+      "url": "$SITE_URL/sitemap.xml",
+      "description": "Direct XML sitemap for crawlers."
+    },
+    {
+      "type": "sitemap-index",
+      "title": "Sitemap index",
+      "url": "$SITE_URL/sitemap-index.xml",
+      "description": "Generated XML sitemap index."
+    },
+    {
+      "type": "rss",
+      "title": "RSS feed",
+      "url": "$SITE_URL/rss.xml",
+      "description": "Site updates and notes."
+    },
+    {
+      "type": "navigation",
+      "title": "Navigation",
+      "url": "$SITE_URL/navigation.json",
+      "description": "Machine-readable navigation and resource links."
+    },
+    {
+      "type": "openapi",
+      "title": "Contact action",
+      "url": "$SITE_URL/openapi.json",
+      "description": "Machine-readable description of the public contact inquiry action."
+    },
+    {
+      "type": "mcp-discovery",
+      "title": "MCP discovery",
+      "url": "$SITE_URL/mcp.json",
+      "description": "Static discovery manifest for machine-readable resources and actions."
+    },
+    {
+      "type": "brand",
+      "title": "Brand profile",
+      "url": "$SITE_URL/brand.json",
+      "description": "Compact brand, service, identity, and color data."
+    },
+    {
+      "type": "humans",
+      "title": "Humans",
+      "url": "$SITE_URL/humans.txt",
+      "description": "Ownership, contact, and standards context."
+    }
+  ],
+  "actions": [
+    {
+      "name": "Project inquiry",
+      "method": "POST",
+      "endpoint": "$FORM_ENDPOINT",
+      "source": "$SITE_URL/#contact",
+      "description": "Submit a new project inquiry."
+    }
+  ]
+}

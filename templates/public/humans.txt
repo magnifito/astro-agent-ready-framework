@@ -1,0 +1,14 @@
+/* Team */
+Company: $SITE_NAME
+Contact: $SITE_EMAIL
+Site: $SITE_URL/
+
+/* Positioning */
+$SITE_POSITIONING
+
+/* Standards */
+Language: en
+Generated with: Astro
+AI context: $SITE_URL/llms.txt
+Full AI context: $SITE_URL/llms-full.txt
+Security contact: $SITE_URL/.well-known/security.txt

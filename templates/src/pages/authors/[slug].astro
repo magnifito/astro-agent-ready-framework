@@ -1,0 +1,120 @@
+---
+import "@fontsource-variable/inter";
+import SeoHead from "~/components/SeoHead.astro";
+import SiteFooter from "~/components/SiteFooter.astro";
+import SiteHeader from "~/components/SiteHeader.astro";
+// import { authors, type Author } from "~/data/authors";
+// import { insights } from "~/data/insights";
+import { getSiteUrl, siteInfo } from "~/data/site";
+import "~/styles/index.css";
+
+// Replace with real data/authors.ts export. Covers audit 3.15, 10.3.
+//
+// interface Author {
+//   slug: string;
+//   name: string;
+//   jobTitle: string;
+//   bio: string;
+//   image: string;                 // absolute URL
+//   sameAs: string[];              // LinkedIn, Twitter/X, GitHub, etc.
+//   topics: string[];              // knowsAbout
+//   credentials?: string[];
+// }
+//
+// export function getStaticPaths() {
+//   return authors.map((author) => ({
+//     params: { slug: author.slug },
+//     props: { author },
+//   }));
+// }
+
+const { author } = Astro.props as { author: any };
+const siteUrl = getSiteUrl(Astro.site);
+const canonicalHref = new URL(`/authors/${author.slug}/`, siteUrl).toString();
+const title = `${author.name} | ${siteInfo.name}`;
+const description = `${author.name} — ${author.jobTitle}. ${author.bio.slice(0, 140)}`;
+
+const structuredData = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "ProfilePage",
+      "@id": `${canonicalHref}#webpage`,
+      url: canonicalHref,
+      mainEntity: { "@id": `${canonicalHref}#person` },
+      isPartOf: { "@type": "WebSite", "@id": `${siteUrl}/#website`, name: siteInfo.name, url: siteUrl },
+    },
+    {
+      "@type": "Person",
+      "@id": `${canonicalHref}#person`,
+      name: author.name,
+      url: canonicalHref,
+      image: author.image,
+      jobTitle: author.jobTitle,
+      description: author.bio,
+      knowsAbout: author.topics,
+      sameAs: author.sameAs,
+      affiliation: { "@id": `${siteUrl}/#organization` },
+    },
+    {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: siteInfo.name, item: `${siteUrl}/` },
+        { "@type": "ListItem", position: 2, name: "Authors", item: `${siteUrl}/authors/` },
+        { "@type": "ListItem", position: 3, name: author.name, item: canonicalHref },
+      ],
+    },
+  ],
+};
+
+// const authorPosts = insights.filter((i) => i.author.slug === author.slug);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <SeoHead
+      title={title}
+      description={description}
+      canonicalPath={`/authors/${author.slug}/`}
+      author={author.name}
+      structuredData={structuredData}
+    />
+  </head>
+  <body class="bg-paper text-ink min-h-screen antialiased">
+    <SiteHeader />
+    <main id="main" class="px-5 py-16 sm:px-8 lg:px-10">
+      <article class="mx-auto max-w-3xl">
+        <p class="text-mint text-sm font-semibold">Author</p>
+        <h1 class="mt-4 text-4xl leading-tight font-black sm:text-6xl">{author.name}</h1>
+        <p class="text-muted mt-3 text-lg">{author.jobTitle}</p>
+        <p class="mt-8 leading-8">{author.bio}</p>
+
+        <address class="mt-10 not-italic">
+          <ul class="flex flex-wrap gap-3">
+            {author.sameAs.map((url: string) => (
+              <li><a class="text-ink font-semibold" href={url} rel="me">{new URL(url).hostname}</a></li>
+            ))}
+          </ul>
+        </address>
+
+        {/*
+        <section class="mt-12">
+          <h2 class="text-2xl font-black">Articles</h2>
+          <ul class="mt-4 space-y-3">
+            {authorPosts.map((post) => (
+              <li>
+                <a class="text-ink font-semibold" href={post.href}>{post.title}</a>
+                <p class="text-muted text-sm">
+                  <time datetime={post.publishedAt}>{post.publishedAt}</time>
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
+        */}
+      </article>
+    </main>
+    <SiteFooter />
+  </body>
+</html>

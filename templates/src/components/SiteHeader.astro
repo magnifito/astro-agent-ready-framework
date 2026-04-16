@@ -1,0 +1,45 @@
+---
+interface Props {
+  variant?: "fixed" | "solid";
+  homeHref?: string;
+  contactHref?: string;
+}
+
+const {
+  variant = "solid",
+  homeHref = "/",
+  contactHref = "/#contact",
+} = Astro.props;
+
+const headerClass =
+  variant === "fixed"
+    ? "bg-ink/80 fixed inset-x-0 top-0 z-40 border-b border-white/10 text-white backdrop-blur-md"
+    : "bg-ink border-b border-white/10 text-white";
+---
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class={headerClass}>
+  <div
+    class="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 sm:px-8 lg:px-10"
+  >
+    <a class="flex items-center gap-3 font-semibold" href={homeHref}>
+      <span class="sr-only">$SITE_NAME</span>
+      <span>$SITE_NAME</span>
+    </a>
+    <nav
+      class="hidden items-center gap-8 text-sm text-white/80 md:flex"
+      aria-label="Primary navigation"
+    >
+      <a href="/services/">Services</a>
+      <a href="/insights/">Insights</a>
+    </nav>
+    <a
+      class="bg-lime text-ink rounded-md px-4 py-2 text-sm font-semibold transition hover:bg-white"
+      href={contactHref}
+      data-action="contact"
+      data-action-type="lead"
+      data-action-label="Header inquiry">Let's talk</a
+    >
+  </div>
+</header>

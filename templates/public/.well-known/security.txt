@@ -1,0 +1,4 @@
+Contact: mailto:$SITE_EMAIL
+Preferred-Languages: en
+Canonical: $SITE_URL/.well-known/security.txt
+Expires: $EXPIRES_ISO

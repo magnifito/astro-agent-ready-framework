@@ -1,0 +1,60 @@
+# $SITE_NAME Full LLM Context
+
+> $SITE_SUMMARY
+
+## About
+
+$SITE_LONG_DESCRIPTION — two to four paragraphs covering positioning, who the business serves, the operating model, and the primary outcomes.
+
+## Services
+
+### $SERVICE_A_TITLE
+$SERVICE_A_LONG_DESCRIPTION
+- Outcomes: …
+- When to use it: …
+
+### $SERVICE_B_TITLE
+$SERVICE_B_LONG_DESCRIPTION
+
+<!-- Repeat per service -->
+
+## Process
+
+1. Understand — Map the business, friction, customer journey, data, opportunities.
+2. Design — Shape the right mix of strategy, AI, automation, technology, software.
+3. Build — Execute with quality, speed, clarity.
+4. Improve — Refine based on performance and new opportunities.
+
+## FAQ
+
+### $FAQ_1_QUESTION
+$FAQ_1_ANSWER
+
+### $FAQ_2_QUESTION
+$FAQ_2_ANSWER
+
+<!-- Repeat per FAQ -->
+
+## Audiences
+
+- $AUDIENCE_1
+- $AUDIENCE_2
+- $AUDIENCE_3
+
+## Contact
+
+- Email: $SITE_EMAIL
+- Form: $SITE_URL/#contact
+
+## Machine-readable resources
+
+- $SITE_URL/llms.txt
+- $SITE_URL/index.md
+- $SITE_URL/sitemap.xml
+- $SITE_URL/rss.xml
+- $SITE_URL/ai-catalog.json
+- $SITE_URL/openapi.json
+- $SITE_URL/mcp.json
+- $SITE_URL/brand.json
+- $SITE_URL/navigation.json
+- $SITE_URL/humans.txt

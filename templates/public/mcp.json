@@ -1,0 +1,72 @@
+{
+  "name": "$SITE_NAME MCP discovery",
+  "url": "$SITE_URL/mcp.json",
+  "description": "Static discovery manifest for $SITE_NAME machine-readable resources and public actions.",
+  "updated": "$UPDATED_ISO_DATE",
+  "resources": [
+    {
+      "name": "LLMs.txt",
+      "uri": "$SITE_URL/llms.txt",
+      "mimeType": "text/plain",
+      "description": "Concise site context and links for AI agents."
+    },
+    {
+      "name": "Full LLM context",
+      "uri": "$SITE_URL/llms-full.txt",
+      "mimeType": "text/plain",
+      "description": "Expanded site context, services, FAQ, and contact details."
+    },
+    {
+      "name": "AI catalog",
+      "uri": "$SITE_URL/ai-catalog.json",
+      "mimeType": "application/json",
+      "description": "Catalog of machine-readable resources and actions."
+    },
+    {
+      "name": "Brand profile",
+      "uri": "$SITE_URL/brand.json",
+      "mimeType": "application/json",
+      "description": "Compact identity, services, color, and resource profile."
+    },
+    {
+      "name": "Humans",
+      "uri": "$SITE_URL/humans.txt",
+      "mimeType": "text/plain",
+      "description": "Ownership, contact, and standards context."
+    },
+    {
+      "name": "Services",
+      "uri": "$SITE_URL/services/",
+      "mimeType": "text/html",
+      "description": "Index of services."
+    },
+    {
+      "name": "OpenAPI contact action",
+      "uri": "$SITE_URL/openapi.json",
+      "mimeType": "application/json",
+      "description": "Public contact inquiry action schema."
+    }
+  ],
+  "tools": [
+    {
+      "name": "submit_project_inquiry",
+      "description": "Submit a public project inquiry through the $SITE_NAME contact form endpoint.",
+      "inputSchema": {
+        "type": "object",
+        "required": ["name", "email", "message"],
+        "properties": {
+          "name": { "type": "string" },
+          "email": { "type": "string", "format": "email" },
+          "message": { "type": "string" }
+        }
+      },
+      "endpoint": "$FORM_ENDPOINT",
+      "method": "POST",
+      "x-webmcp-safety": {
+        "idempotent": false,
+        "destructive": false,
+        "requiresUserConsent": true
+      }
+    }
+  ]
+}

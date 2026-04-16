@@ -1,0 +1,24 @@
+{
+  "name": "$SITE_NAME",
+  "url": "$SITE_URL/",
+  "description": "$SITE_SUMMARY",
+  "updated": "$UPDATED_ISO_DATE",
+  "primary": [
+    { "label": "Home", "url": "$SITE_URL/" },
+    { "label": "Services", "url": "$SITE_URL/services/" },
+    { "label": "Insights", "url": "$SITE_URL/insights/" },
+    { "label": "Contact", "url": "$SITE_URL/#contact" }
+  ],
+  "machineReadable": [
+    { "label": "LLMs.txt", "url": "$SITE_URL/llms.txt" },
+    { "label": "Full LLM context", "url": "$SITE_URL/llms-full.txt" },
+    { "label": "Sitemap", "url": "$SITE_URL/sitemap.xml" },
+    { "label": "Sitemap index", "url": "$SITE_URL/sitemap-index.xml" },
+    { "label": "RSS", "url": "$SITE_URL/rss.xml" },
+    { "label": "AI catalog", "url": "$SITE_URL/ai-catalog.json" },
+    { "label": "OpenAPI", "url": "$SITE_URL/openapi.json" },
+    { "label": "MCP discovery", "url": "$SITE_URL/mcp.json" },
+    { "label": "Brand profile", "url": "$SITE_URL/brand.json" },
+    { "label": "Humans", "url": "$SITE_URL/humans.txt" }
+  ]
+}

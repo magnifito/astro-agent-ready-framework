@@ -1,0 +1,95 @@
+# $SITE_NAME Apache config
+
+# Enable rewrite engine
+RewriteEngine On
+
+# --- Enforce trailing slash for directory routes ---
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_URI} !(.*)/$
+RewriteRule ^(.*)$ /$1/ [R=301,L]
+
+# --- Standard routing for static site ---
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{DOCUMENT_ROOT}/%{REQUEST_URI}/index.html -f
+RewriteRule ^(.*)$ /$1/index.html [L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ /$1.html [L]
+
+# --- Custom 404 ---
+ErrorDocument 404 /404.html
+
+# --- Security headers ---
+<IfModule mod_headers.c>
+    # HSTS: enable only when the site is exclusively served over HTTPS
+    # Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    # Cross-Origin isolation (framework §14 + agenticstorefront advanced security).
+    # Enables SharedArrayBuffer, protects against Spectre-class side channels.
+    # Comment out if the site embeds third-party iframes that haven't adopted these headers.
+    Header always set Cross-Origin-Opener-Policy "same-origin"
+    Header always set Cross-Origin-Embedder-Policy "require-corp"
+    Header always set Cross-Origin-Resource-Policy "same-site"
+    # Tune CSP per site. Sample (Unsplash + Web3Forms):
+    # Header always set Content-Security-Policy "default-src 'self'; img-src 'self' https://images.unsplash.com data:; style-src 'self' 'unsafe-inline'; script-src 'self'; form-action 'self' https://api.web3forms.com; frame-ancestors 'self'"
+</IfModule>
+
+# --- CORS: .well-known ---
+<IfModule mod_headers.c>
+    <LocationMatch "^/\.well-known/">
+        Header always set Access-Control-Allow-Origin "*"
+        Header always set Access-Control-Allow-Methods "GET, OPTIONS"
+        Header always set Access-Control-Allow-Headers "Content-Type"
+    </LocationMatch>
+</IfModule>
+
+# --- CORS: llms.txt ---
+<IfModule mod_headers.c>
+    <FilesMatch "^llms(-full)?\.txt$">
+        Header always set Access-Control-Allow-Origin "*"
+        Header always set Cache-Control "public, max-age=86400"
+    </FilesMatch>
+</IfModule>
+
+# --- CORS: RSS, sitemap, robots, navigation, AI catalog, OpenAPI ---
+<IfModule mod_headers.c>
+    <FilesMatch "^(sitemap.*\.xml|rss\.xml|robots\.txt|humans\.txt|navigation\.json|ai-catalog\.json|brand\.json|openapi\.json|mcp\.json)$">
+        Header always set Access-Control-Allow-Origin "*"
+    </FilesMatch>
+</IfModule>
+
+# --- AI and crawler resources: short cache ---
+<IfModule mod_headers.c>
+    <FilesMatch "^(llms(-full)?\.txt|robots\.txt|humans\.txt|navigation\.json|ai-catalog\.json|brand\.json|openapi\.json|mcp\.json|rss\.xml|.*\.md)$">
+        Header always set Cache-Control "public, max-age=86400"
+    </FilesMatch>
+</IfModule>
+
+# --- Static assets: long cache (_astro/ hashed files) ---
+<IfModule mod_headers.c>
+    <If "%{REQUEST_URI} =~ m#^/_astro/#">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </If>
+</IfModule>
+
+# --- Gzip compression ---
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/plain text/css text/xml
+    AddOutputFilterByType DEFLATE application/json application/javascript
+    AddOutputFilterByType DEFLATE application/rss+xml application/atom+xml
+    AddOutputFilterByType DEFLATE image/svg+xml
+</IfModule>
+
+# --- MIME types ---
+<IfModule mod_mime.c>
+    AddType application/javascript .mjs
+    AddType application/json .json
+    AddType application/xml .xml
+    AddType text/markdown .md
+    AddType text/plain .txt
+</IfModule>

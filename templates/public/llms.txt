@@ -1,0 +1,37 @@
+# $SITE_NAME
+
+> $SITE_SUMMARY — one or two sentences, plain text, no links, describing what this site provides.
+
+## Core Pages
+
+- [Homepage]($SITE_URL/): $PAGE_HOME_DESC
+- [Services]($SITE_URL/services/): Index of services offered.
+- [Insights]($SITE_URL/insights/): Short strategic notes.
+- [Contact]($SITE_URL/#contact): Project inquiry path.
+
+## Services
+
+- [Service A]($SITE_URL/services/service-a/): One-line description.
+- [Service B]($SITE_URL/services/service-b/): One-line description.
+
+## Insights
+
+- [Insight A]($SITE_URL/insights/insight-a/): One-line description.
+
+## Machine-Readable Resources
+
+- [Full LLM context]($SITE_URL/llms-full.txt): Expanded context, services, FAQ, contact.
+- [Markdown homepage]($SITE_URL/index.md): Clean Markdown version of the homepage.
+- [Sitemap]($SITE_URL/sitemap.xml): Direct XML sitemap.
+- [Sitemap index]($SITE_URL/sitemap-index.xml): Generated sitemap index.
+- [RSS feed]($SITE_URL/rss.xml): Updates and notes.
+- [AI catalog]($SITE_URL/ai-catalog.json): Catalog of machine-readable resources and actions.
+- [OpenAPI contact action]($SITE_URL/openapi.json): Schema of the public inquiry action.
+- [MCP discovery]($SITE_URL/mcp.json): Static discovery manifest.
+- [Brand profile]($SITE_URL/brand.json): Compact brand, service, identity data.
+- [Humans]($SITE_URL/humans.txt): Ownership, contact, standards context.
+
+## Contact
+
+- [Contact section]($SITE_URL/#contact): Project inquiry form.
+- [Email](mailto:$SITE_EMAIL): Direct business inquiries.

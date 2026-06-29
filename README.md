@@ -1,6 +1,6 @@
 # AIO Framework for Astro Static Sites
 
-A pragmatic framework for making Astro static sites AI-ready. Every item is tied to a specific audit from the canonical audit metadata (`ucp-analysis/apps/audit/src/data/audit-metadata.json` — **189 audits** across 10 categories) and to a concrete artifact (file, component, integration, header) that produces it.
+A pragmatic framework for making Astro static sites AI-ready. Every item is tied to a specific audit from the canonical audit metadata (`ucp-analysis/apps/audit/src/data/audit-metadata.json` — **200 audits** across 10 categories) and to a concrete artifact (file, component, integration, header) that produces it.
 
 Terminology:
 - **AIO** — AI Optimization. Umbrella term covering classic SEO + the following:
@@ -11,7 +11,7 @@ Terminology:
 
 ## Why this framework
 
-The Moesica.com audit (see `context/audit.md`) scored 18 of 156 executed audits on first pass. The canonical metadata defines 189 total audits (the extra 33 activate on specific page types — commerce, HowTo, local business, authored content, pricing). Applying this framework covers all 189 audits by producing:
+The Moesica.com audit (see `context/audit.md`) scored 18 of 156 executed audits on first pass. The canonical metadata defines 200 total audits (the extra 33 activate on specific page types — commerce, HowTo, local business, authored content, pricing). Applying this framework covers all 200 audits by producing:
 - `llms.txt`, `llms-full.txt`, per-page Markdown alternates
 - Sitemap (generated + static), RSS with full content
 - JSON-LD graph: `Organization` (w/ logo + `sameAs` + `potentialAction`), `WebSite` with `SearchAction`, `WebPage`, `OfferCatalog`, `Service` (w/ `potentialAction`), `Article` (w/ `datePublished` + `dateModified` + `Person` author), `Person` with `jobTitle` + `sameAs` + `affiliation`, `FAQPage`, `BreadcrumbList`, `SpeakableSpecification`, `ConfirmAction`, `HowTo`, `LocalBusiness`, `Offer`, `Review`/`AggregateRating`, `Product` (w/ GTIN/UPC/MPN/brand/category)

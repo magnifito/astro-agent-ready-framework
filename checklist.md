@@ -1,4 +1,4 @@
-# AIO Checklist — All 189 Audits
+# AIO Checklist — All 200 Audits
 
 Complete coverage of the canonical audit metadata (`ucp-analysis/apps/audit/src/data/audit-metadata.json`).
 
@@ -187,7 +187,11 @@ All emitted by `SeoHead.astro`:
 
 ---
 
-## 7. Accessibility & Agent Interaction (7% — 12 audits)
+## 7. Accessibility & Agent Interaction (7% — 23 audits)
+
+> 7.10–7.23 are axe-core-backed structural checks (added when the scanner moved
+> to axe-core). They are mostly authoring conventions — get them right once in
+> the templates and every page passes.
 
 | # | Prio | Check | Coverage |
 |---|---|---|---|
@@ -195,14 +199,25 @@ All emitted by `SeoHead.astro`:
 | 7.2 | high | ARIA landmarks complete | ✅ header / main / footer / labeled nav |
 | 7.3 | medium | nav has aria-label | ✅ primary + footer both labeled |
 | 7.4 | medium | Multiple nav distinguished | ✅ distinct `aria-label` values |
-| 7.5 | high | Form inputs have labels | ✅ `<label>` wraps every input in template form |
-| 7.6 | medium | Form error messages linked | ⚠️ when adding JS validation, wire `aria-describedby` |
+| 7.5 | high | Form inputs have labels | ✅ `<label for>` on every input (incl. search) |
+| 7.6 | medium | Form error messages linked | ⚠️ when adding JS validation, wire `aria-describedby` + `role="alert"` |
 | 7.7 | high | Buttons/links accessible names | ⚠️ convention |
 | 7.8 | high | Icon-only elements labels | ⚠️ `aria-label` or `.sr-only` text |
 | 7.9 | high | Modal dialogs role="dialog" | ❌ only when modals exist |
-| 7.10 | high | Focus styles declared in CSS | 🔧 add `:focus-visible` outline to site stylesheet |
-| 7.11 | high | Color contrast declarations | 🔧 theme-level — WCAG AA body text |
-| 7.12 | medium | prefers-reduced-motion respected | 🔧 add `@media (prefers-reduced-motion: reduce)` rules |
+| 7.10 | critical | Page exposed to a11y tree | ✅ never `aria-hidden="true"` on `<body>`/root |
+| 7.11 | high | Valid / non-misused ARIA roles | ✅ convention — only valid role tokens, no abstract roles |
+| 7.12 | high | Valid ARIA attributes | ✅ convention — only valid `aria-*` names + values |
+| 7.13 | medium | Complete ARIA relationships | 🔧 give ARIA widgets their required attrs + required child/parent roles |
+| 7.14 | medium | Unique IDs for ARIA references | 🔧 every `id` referenced by `for`/`aria-*`/`labelledby` is unique per page |
+| 7.15 | high | Valid autocomplete tokens | 🔧 use valid tokens (`email`, `given-name`, `postal-code`, `cc-number`…) on form fields |
+| 7.16 | medium | No nested interactive controls | 🔧 never nest focusable elements (no `<a>`/`<button>` inside `<button>`) |
+| 7.17 | medium | Data tables have header associations | 🔧 `<th scope="col"\|"row">` (or `headers`/`id`) on every data table |
+| 7.18 | high | Non-empty `<title>` | ✅ `SeoHead.astro` always emits a unique, descriptive `<title>` |
+| 7.19 | low | Frames are titled | 🔧 unique, descriptive `title` on every `<iframe>` (maps, embeds) |
+| 7.20 | medium | No time-based auto-refresh/redirect | ✅ no `<meta http-equiv="refresh">`; use 3xx server redirects |
+| 7.21 | low | No positive tabindex | ✅ convention — only `tabindex="0"`/`"-1"`, rely on DOM order |
+| 7.22 | low | No deprecated presentational elements | ✅ no `<marquee>`/`<blink>`; CSS for motion |
+| 7.23 | low | No presentation-role conflicts | ✅ no `role="presentation"\|"none"` on focusable/labeled elements |
 
 ---
 
@@ -276,9 +291,9 @@ All emitted by `SeoHead.astro`:
 
 ---
 
-## Extension categories (beyond canonical 189)
+## Extension categories (beyond canonical 200)
 
-Signals flagged by production audit engines (`agenticstorefront/AIAgentOptimizationService.ts`) that aren't in the canonical 189 but affect AI-agent readiness in practice. Apply when relevant.
+Signals flagged by production audit engines (`agenticstorefront/AIAgentOptimizationService.ts`) that aren't in the canonical 200 but affect AI-agent readiness in practice. Apply when relevant.
 
 ### 11. Multi-Modal Capabilities
 
@@ -336,7 +351,7 @@ Signals flagged by production audit engines (`agenticstorefront/AIAgentOptimizat
 | **Publisher / media** | `/authors/`, `/categories/`, `/archive/` | `NewsArticle`, `Person` per author w/ `sameAs`, `NewsMediaOrganization` |
 | **Docs / knowledge base** | `/docs/`, `/api/`, `/guides/` | `TechArticle`, `HowTo`, `APIReference`. Add `llms-docs.txt` for deep LLM context |
 
-Pick one variant, apply its extras on top of the base framework. All variants inherit full 189-audit coverage.
+Pick one variant, apply its extras on top of the base framework. All variants inherit full 200-audit coverage.
 
 ---
 
@@ -350,11 +365,11 @@ Pick one variant, apply its extras on top of the base framework. All variants in
 | Meta Tags | 20 | 19 | 1 | 0 | 0 | 0 |
 | Agent Tools | 25 | 19 | 3 | 0 | 0 | 2 |
 | Semantic HTML | 17 | 2 | 15 | 0 | 0 | 0 |
-| Accessibility | 12 | 5 | 4 | 3 | 0 | 0 |
+| Accessibility | 23 | 13 | 3 | 6 | 0 | 1 |
 | Technical Readiness | 21 | 10 | 5 | 6 | 0 | 0 |
 | Answer Engine | 11 | 0 | 11 | 0 | 0 | 0 |
 | Generative Engine | 15 | 7 | 8 | 0 | 0 | 0 |
-| **Total** | **189** | **112** | **54** | **11** | **4** | **6** |
+| **Total** | **200** | **120** | **53** | **14** | **4** | **7** |
 
 Interpretation:
 - **112 ✅** pass automatically once templates are copied and the build validator runs.

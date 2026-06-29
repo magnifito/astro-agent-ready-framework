@@ -1,8 +1,8 @@
 # AIO Framework — Ten Categories + Four Extensions + Industry Variants
 
-Source: canonical AIO audit metadata at `ucp-analysis/apps/audit/src/data/audit-metadata.json` — **189 audits** across 10 categories. Moesica run surfaced 156; remaining 33 activate on certain page types (commerce, HowTo, local, authored content, pricing). Framework covers all 189.
+Source: canonical AIO audit metadata at `ucp-analysis/apps/audit/src/data/audit-metadata.json` — **200 audits** across 10 categories. Moesica run surfaced 156; remaining 33 activate on certain page types (commerce, HowTo, local, authored content, pricing). Framework covers all 200.
 
-Cross-referenced against the `agenticstorefront` AI Commerce Readiness audit engine (`AIAgentOptimizationService.ts`, 1901 LOC). Four extension categories (§11–14) and Industry Variants section added to cover signals that engine audits beyond the 189 canonical audits.
+Cross-referenced against the `agenticstorefront` AI Commerce Readiness audit engine (`AIAgentOptimizationService.ts`, 1901 LOC). Four extension categories (§11–14) and Industry Variants section added to cover signals that engine audits beyond the 200 canonical audits.
 
 Weights reflect audit scoring model. Full coverage of weighted-high categories reliably scores above 80%.
 
@@ -229,19 +229,43 @@ This is the single biggest scoring lever. An AI agent should be able to discover
 
 ## 7. Accessibility & Agent Interaction (7%)
 
-### Required
+23 audits. 7.1–7.9 are hand-rolled markup checks; **7.10–7.23 are axe-core-backed**
+structural checks. Agents parse the accessibility tree the same way assistive
+tech does — a clean tree is also a clean agent surface.
+
+### Required — landmarks & names (7.1–7.9)
 - Skip-link at top of every page (`.skip-link` → `#main`).
-- All form inputs have an associated `<label>`.
+- All form inputs have an associated `<label for>` (including the search box).
 - All buttons and links have accessible text (no icon-only without `aria-label` or `.sr-only` text).
-- Focus styles declared in CSS (visible `:focus-visible` outline).
-- `prefers-reduced-motion` respected for any animations.
-- Color contrast WCAG AA on body text.
-- Modals use `role="dialog"` + focus trap (only if modals exist).
+- Form error messages linked via `aria-describedby` + `role="alert"` (when JS validation is added).
+- Modals use `role="dialog"` + `aria-labelledby` + focus trap (only if modals exist).
 - Multiple navs distinguishable (`<nav aria-label="Primary">`, `<nav aria-label="Footer">`).
 
+### Required — axe-core structural checks (7.10–7.23)
+- **7.10** Never put `aria-hidden="true"` on `<body>` or the root element.
+- **7.11/7.12** Use only valid ARIA role tokens and valid `aria-*` attribute names/values — no abstract roles, no misspellings.
+- **7.13** ARIA widgets carry their required attributes and required child/parent roles (e.g. `tablist`→`tab`→`tabpanel`).
+- **7.14** Every `id` referenced by `for`/`aria-labelledby`/`aria-describedby` is **unique per page** (watch repeated components).
+- **7.15** Form fields use **valid HTML autocomplete tokens** (`email`, `given-name`, `family-name`, `tel`, `postal-code`, `cc-number`, …).
+- **7.16** No nested interactive controls (no `<a>`/`<button>` inside another `<button>`/`<a>`).
+- **7.17** Data tables associate cells to headers: `<th scope="col"|"row">` (or `headers`/`id`).
+- **7.18** Every page emits a **non-empty, unique `<title>`** (handled by `SeoHead.astro`).
+- **7.19** Every `<iframe>` (maps, video, embeds) has a unique, descriptive `title`.
+- **7.20** No time-based `<meta http-equiv="refresh">`; use 3xx server redirects.
+- **7.21** No positive `tabindex` — rely on DOM order; only `tabindex="0"`/`"-1"`.
+- **7.22** No deprecated `<marquee>`/`<blink>`; use CSS for motion.
+- **7.23** No `role="presentation"`/`"none"` on focusable or ARIA-labeled elements.
+
+### Good practice (not scored, but recommended)
+- Visible `:focus-visible` outline in CSS, WCAG AA contrast on body text, and
+  `@media (prefers-reduced-motion: reduce)` for animations. (These were scored by
+  older scanner versions; they remain best practice.)
+
 ### Astro wiring
-- `SiteHeader.astro` emits the `.skip-link` once.
-- Use `variant` props to distinguish fixed vs. solid header rendering.
+- `SiteHeader.astro` emits the `.skip-link` once and the labeled `<nav>` elements.
+- `SeoHead.astro` guarantees the non-empty `<title>` (7.18) on every route.
+- Most of 7.10–7.23 are **authoring conventions** — encode them in the base
+  components/layouts once and every generated page inherits a pass.
 
 ---
 
@@ -342,7 +366,7 @@ Signals that push LLMs to cite the site by name.
 
 ## 11. Multi-Modal Capabilities (extension)
 
-Beyond text, AI agents increasingly consume images, video, and audio. Extension category — not in canonical 189 but flagged by production audit engines.
+Beyond text, AI agents increasingly consume images, video, and audio. Extension category — not in canonical 200 but flagged by production audit engines.
 
 ### Required
 - Every `<img>` has descriptive `alt` (>5 chars non-trivial) — decorative images use `alt=""`.
@@ -421,7 +445,7 @@ The 10 base categories apply universally. Industry variant layer adds required a
 | **Publisher / media** | bylines, RSS with full content, archive | `NewsArticle` or `Article` per story, `Person` per author with `sameAs`, `BreadcrumbList`, `NewsMediaOrganization` | `/authors/<slug>/`, `/categories/<slug>/`, `/archive/` | Heavy on E-E-A-T — GEO audits 10.1–10.5 |
 | **Docs / knowledge base** | versioned docs, search, API reference | `TechArticle`, `HowTo`, `APIReference`, `SoftwareApplication` | `/docs/`, `/docs/v2/`, `/api/`, `/guides/<slug>/` | Pair with `llms-docs.txt` style deep LLM context file |
 
-For each variant, copy the base templates in `/aio-framework/templates/`, then layer the variant's additional pages and schema. Every variant inherits the full 189-audit coverage of the base.
+For each variant, copy the base templates in `/aio-framework/templates/`, then layer the variant's additional pages and schema. Every variant inherits the full 200-audit coverage of the base.
 
 ---
 
@@ -435,4 +459,4 @@ Priority order for a fresh Astro site aiming to reach 80%+:
 4. **Technical readiness (cat 8)** — 9% weight. `.htaccess`, CSP, CORS, HSTS, privacy/terms, security.txt.
 5. **GEO (cat 10)**, **Meta tags (cat 4)**, **Crawler permissions (cat 2)** — each 8%. `SeoHead.astro` covers cat 4 in one pass; robots.txt covers cat 2; GEO is a content edit.
 6. **Semantic HTML (cat 6)**, **AEO (cat 9)** — 8% / 7%. One-time content rewrite.
-7. **Accessibility (cat 7)** — 7%. Skip-link, labels, focus styles, reduced-motion.
+7. **Accessibility (cat 7)** — 7%. Skip-link, labels, landmarks + the axe-core structural checks (7.10–7.23): valid ARIA, unique ids, valid autocomplete tokens, no nested-interactive, table `scope`, non-empty `<title>`, iframe titles, no meta-refresh, no positive tabindex.

@@ -1,0 +1,94 @@
+---
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import {
+  breadcrumbs,
+  graph,
+  organization,
+  service as serviceNode,
+  webPage,
+} from "~/lib/schema";
+import { getSiteUrl, siteInfo } from "~/data/site";
+
+// Service detail archetype: Organization (ref) + Service + WebPage +
+// BreadcrumbList + speakable + potentialAction ContactAction (audits 3.3, 3.5,
+// 3.9, 3.10). Wire the data array, then uncomment getStaticPaths:
+//
+// import { services, type Service } from "~/data/services";
+//
+// export function getStaticPaths() {
+//   return services.map((service) => ({
+//     params: { slug: service.slug },
+//     props: { service },
+//   }));
+// }
+//
+// The inline fallback keeps the file typechecking until the array is wired.
+const svc = (Astro.props as { service?: any }).service ?? {
+  slug: "$SERVICE_ONE_SLUG",
+  title: "$SERVICE_ONE_TITLE",
+  summary: "$SERVICE_ONE_SUMMARY",
+  body: "$SERVICE_ONE_BODY",
+  href: "/services/$SERVICE_ONE_SLUG/",
+};
+
+const siteUrl = getSiteUrl(Astro.site);
+const canonicalHref = new URL(svc.href, siteUrl).toString();
+const title = `${svc.title} | ${siteInfo.name}`;
+const description = svc.summary;
+
+const structuredData = graph(
+  organization(siteUrl),
+  serviceNode({ siteUrl, canonicalHref, name: svc.title, description }),
+  webPage({
+    siteUrl,
+    canonicalHref,
+    title,
+    description,
+    about: { "@id": `${canonicalHref}#service` },
+    speakable: ["h1", ".service-summary"],
+  }),
+  breadcrumbs([
+    { name: siteInfo.name, item: `${siteUrl}/` },
+    { name: "Services", item: `${siteUrl}/services/` },
+    { name: svc.title, item: canonicalHref },
+  ]),
+);
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  canonicalPath={svc.href}
+  structuredData={structuredData}
+>
+  <article class="mx-auto max-w-3xl">
+    <nav class="text-muted text-sm" aria-label="Breadcrumb">
+      <a class="text-ink" href="/services/">Services</a> / {svc.title}
+    </nav>
+
+    <p class="text-mint mt-6 text-sm font-semibold">Service</p>
+    <h1 class="mt-3 text-4xl leading-tight font-black sm:text-6xl">
+      {svc.title}
+    </h1>
+
+    {/* .service-summary is the speakable target — keep the class in sync */}
+    <p class="service-summary text-muted mt-6 text-lg leading-8">
+      {svc.summary}
+    </p>
+
+    <div class="mt-8 leading-8">
+      <p>{svc.body}</p>
+    </div>
+
+    <p class="mt-12">
+      <a
+        class="bg-lime text-ink inline-block rounded-md px-5 py-3 font-semibold"
+        href="/#contact"
+        data-action="contact"
+        data-action-type="lead"
+        data-action-label={`Enquire about ${svc.title}`}
+        >Start a project</a
+      >
+    </p>
+  </article>
+</BaseLayout>

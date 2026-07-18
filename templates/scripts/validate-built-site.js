@@ -28,13 +28,20 @@ const requiredFiles = [
   "openapi.json",
   "humans.txt",
   ".well-known/security.txt",
+  "agents.json",
+  ".well-known/ai-plugin.json",
+  ".well-known/mcp.json",
+  "404.html",
+  "privacy/index.html",
+  "terms/index.html",
+  "thank-you/index.html",
+  "services/index.html",
+  "insights/index.html",
   // Static search index produced by astro-pagefind. Remove if not using search.
   "pagefind/pagefind.js",
   "search/index.html",
   // Add per-page required files:
-  // "services/index.html",
   // "services/index.md",
-  // "insights/index.html",
   // "insights/index.md",
 ];
 
@@ -117,6 +124,160 @@ for (const [file, keys] of Object.entries(requiredJsonKeys)) {
     if (!(key in parsed)) {
       fail(`dist/${file} is missing key ${key}`);
     }
+  }
+}
+
+// Recursive walk that returns absolute paths of files matching `filter`.
+function walk(dir, filter) {
+  const out = [];
+  if (!fs.existsSync(dir)) return out;
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      out.push(...walk(full, filter));
+    } else if (filter(full)) {
+      out.push(full);
+    }
+  }
+  return out;
+}
+
+// ---------------------------------------------------------------------------
+// 1. llms.txt link validation (makes checklist claim 1.5 real).
+//    Parse markdown links [text](url) from the llms manifests and confirm every
+//    same-origin target actually exists in dist/. External + mailto: are skipped.
+// ---------------------------------------------------------------------------
+const linkManifests = ["llms.txt", "llms-full.txt"];
+const MD_LINK = /\[[^\]]*\]\(([^)\s]+)/g;
+for (const file of linkManifests) {
+  if (!fs.existsSync(path.join(dist, file))) continue;
+  const text = readFile(file);
+  let match;
+  while ((match = MD_LINK.exec(text)) !== null) {
+    const url = match[1].trim();
+    if (!url || url.startsWith("mailto:")) continue;
+    // Same-origin only — compare by prefix (SITE_URL may still be a placeholder).
+    if (!url.startsWith(SITE_URL)) continue;
+    // Strip the origin, then drop any #fragment / ?query.
+    let rest = url.slice(SITE_URL.length).split("#")[0].split("?")[0];
+    rest = rest.replace(/^\/+/, "");
+    let targets;
+    if (rest === "") {
+      targets = ["index.html"]; // origin root (e.g. $SITE_URL/ or $SITE_URL/#contact)
+    } else if (rest.endsWith("/")) {
+      targets = [`${rest}index.html`]; // trailing-slash → directory index
+    } else if (/\.[a-z0-9]+$/i.test(rest)) {
+      targets = [rest]; // has a file extension → the file itself
+    } else {
+      // Extensionless pretty URL — accept either directory index or flat .html.
+      targets = [`${rest}/index.html`, `${rest}.html`];
+    }
+    if (!targets.some((t) => fs.existsSync(path.join(dist, t)))) {
+      fail(`dist/${file} links to ${url} but ${targets.map((t) => `dist/${t}`).join(" / ")} does not exist`);
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 2. Placeholder-leak scan. Catches forgotten sed replacements in the shipped
+//    output. (The script's own SITE_URL const is a placeholder pre-replacement;
+//    that is fine — this scan targets dist/ files only.)
+//    Generic $TOKEN pattern: $ + UPPER word + at least one _SEGMENT. Catches
+//    every token family — $SITE_*, $PAGE_*, $LEGAL_*, $INSIGHT_*, $AUTHOR_*,
+//    $CITATION_*, $PRIVACY_*, $TERMS_*, $INDEXNOW_KEY, $SERVICE_*, etc.
+//    NOTE: this is the FINAL gate. Content tokens that init.mjs is allowed to
+//    leave as TODOs (privacy/terms body, example insight/service copy) MUST be
+//    resolved before build — they still fail here by design; that is intended.
+// ---------------------------------------------------------------------------
+const TEXT_EXTENSIONS = new Set([".html", ".md", ".txt", ".json", ".xml", ".js", ".css"]);
+const PLACEHOLDER = /\$[A-Z][A-Z0-9]*_[A-Z0-9_]+/g;
+// Hashed bundle output (dist/_astro/**) and the Pagefind search index
+// (dist/pagefind/**) are machine-generated and can legitimately contain
+// `$UPPER_UPPER` identifiers (minified vars, indexed tokens) that look like our
+// $TOKEN placeholders. Template-authored placeholders never survive into those
+// by path — they live in HTML/MD/JSON/XML/TXT and root-level generated JS — so
+// exclude both dirs to avoid false positives.
+const PLACEHOLDER_SKIP_DIRS = new Set(["_astro", "pagefind"]);
+// Exact `$TOKEN` strings that are legitimately part of shipped output and must
+// NOT fail the leak scan. Keep this EMPTY unless a real, unavoidable false
+// positive appears — the default posture is that no template placeholder
+// survives into dist/. Add entries as exact strings, e.g. "$EXAMPLE_TOKEN".
+const PLACEHOLDER_ALLOWLIST = [];
+for (const full of walk(dist, (f) => TEXT_EXTENSIONS.has(path.extname(f).toLowerCase()))) {
+  const rel = path.relative(dist, full);
+  if (PLACEHOLDER_SKIP_DIRS.has(rel.split(path.sep)[0])) continue;
+  const text = fs.readFileSync(full, "utf8");
+  const leaked = new Set();
+  let m;
+  PLACEHOLDER.lastIndex = 0;
+  while ((m = PLACEHOLDER.exec(text)) !== null) leaked.add(m[0]);
+  for (const token of leaked) {
+    if (PLACEHOLDER_ALLOWLIST.includes(token)) continue;
+    fail(`dist/${rel} contains unreplaced template token ${token}`);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 3. Static HTML lint. Zero-dependency structural pass over Astro's own build
+//    output (careful regexes are acceptable here — it is not arbitrary HTML).
+//    Per-file opt-outs live in HTML_LINT_SKIP: map filename → skipped check ids.
+//    Check ids: h1, heading-order, img-alt, main, header, footer, title, canonical.
+// ---------------------------------------------------------------------------
+const HTML_LINT_SKIP = {
+  "404.html": ["canonical"],
+};
+for (const full of walk(dist, (f) => f.toLowerCase().endsWith(".html"))) {
+  const rel = path.relative(dist, full);
+  // Skip pagefind's generated search fragments.
+  if (rel.split(path.sep)[0] === "pagefind") continue;
+  const skip = new Set(HTML_LINT_SKIP[rel] || []);
+  const html = fs.readFileSync(full, "utf8");
+
+  // exactly one <h1>
+  if (!skip.has("h1")) {
+    const h1Count = (html.match(/<h1[\s>]/gi) || []).length;
+    if (h1Count !== 1) fail(`dist/${rel}: expected exactly one <h1>, found ${h1Count}`);
+  }
+
+  // no heading-level skips (e.g. h2 → h4)
+  if (!skip.has("heading-order")) {
+    let prev = 0;
+    for (const h of html.matchAll(/<h([1-6])[\s>]/gi)) {
+      const level = Number(h[1]);
+      if (prev && level > prev + 1) {
+        fail(`dist/${rel}: heading level skip h${prev}→h${level}`);
+        break;
+      }
+      prev = level;
+    }
+  }
+
+  // every <img …> has an alt attribute (empty allowed)
+  if (!skip.has("img-alt")) {
+    for (const img of html.match(/<img\b[^>]*>/gi) || []) {
+      if (!/\balt\s*=/i.test(img)) {
+        fail(`dist/${rel}: <img> without alt attribute`);
+        break;
+      }
+    }
+  }
+
+  // structural landmarks present
+  for (const tag of ["main", "header", "footer"]) {
+    if (!skip.has(tag) && !new RegExp(`<${tag}[\\s>]`, "i").test(html)) {
+      fail(`dist/${rel}: missing <${tag}>`);
+    }
+  }
+
+  // non-empty <title>
+  if (!skip.has("title")) {
+    const title = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+    if (!title || !title[1].trim()) fail(`dist/${rel}: empty or missing <title>`);
+  }
+
+  // <link rel="canonical"> present
+  if (!skip.has("canonical") && !/<link\b[^>]*\brel=["']?canonical\b/i.test(html)) {
+    fail(`dist/${rel}: missing <link rel="canonical">`);
   }
 }
 

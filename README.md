@@ -15,14 +15,15 @@ The Moesica.com audit (see `context/audit.md`) scored 18 of 156 executed audits 
 - `llms.txt`, `llms-full.txt`, per-page Markdown alternates
 - Sitemap (generated + static), RSS with full content
 - JSON-LD graph: `Organization` (w/ logo + `sameAs` + `potentialAction`), `WebSite` with `SearchAction`, `WebPage`, `OfferCatalog`, `Service` (w/ `potentialAction`), `Article` (w/ `datePublished` + `dateModified` + `Person` author), `Person` with `jobTitle` + `sameAs` + `affiliation`, `FAQPage`, `BreadcrumbList`, `SpeakableSpecification`, `ConfirmAction`, `HowTo`, `LocalBusiness`, `Offer`, `Review`/`AggregateRating`, `Product` (w/ GTIN/UPC/MPN/brand/category)
-- Machine-readable endpoints: `ai-catalog.json`, `brand.json`, `mcp.json`, `openapi.json`, `navigation.json`, `humans.txt`, `.well-known/security.txt`
+- Machine-readable endpoints: `ai-catalog.json`, `brand.json`, `agents.json`, `mcp.json` (also at `.well-known/mcp.json`), `.well-known/ai-plugin.json`, `openapi.json`, `navigation.json`, `humans.txt`, `.well-known/security.txt`
+- Typed JSON-LD `@graph` builders (`src/lib/schema.ts`) and example archetype pages (services, insights, authors, privacy, terms, 404)
 - Head links to every machine-readable resource (`rel="alternate"`, `rel="service-desc"`, `rel="sitemap"`, `rel="prev"` / `rel="next"` for pagination)
 - `data-action-*` attributes on every CTA for agent action discovery
 - `<meta name="author">` on every content page, named `Person` bylines with author pages at `/authors/<slug>/`
 - `<article>`, `<aside>`, `<time datetime>`, `<dfn>`/`<dl>`, `<address>`, `<table>` and `<ol>` conventions for RAG-friendly chunking + freshness signals
 - robots.txt with explicit AI bot allows
 - Apache `.htaccess` with security headers, CORS on AI files, long-cache on `_astro/`
-- Build validator (`scripts/validate-built-site.js`) that fails the build if any of the above regress
+- Build validator (`scripts/validate-built-site.js`) that fails the build if any of the above regress, a headless axe-core smoke test (`scripts/validate-headless.js`), a token-replacing bootstrap (`scripts/init.mjs`), an IndexNow ping (`scripts/indexnow-ping.mjs`), and a CI workflow (`.github/workflows/verify.yml`)
 
 ## Files in this folder
 
@@ -37,11 +38,11 @@ The Moesica.com audit (see `context/audit.md`) scored 18 of 156 executed audits 
 ## How to use on a new Astro site
 
 1. Read `framework.md` to understand the ten categories.
-2. Copy `templates/` into the new site, rewrite placeholders.
+2. Copy `templates/` into the new site, then run `npm run init` — it rewrites every `$TOKEN` (interactively or from `site.config.json`), generates the IndexNow key, and reports remaining content tokens as a TODO list (replaces the old `sed` workflow).
 3. Wire the integrations in `templates/astro.config.mjs` (sitemap + `@puralex/astro-markdown-for-agents`).
-4. Adopt the `SeoHead.astro` component on every page.
-5. Add `structured-data-patterns.md` graphs per page archetype.
-6. Run `npm run verify` (build + validate). The validator enforces the critical surface.
+4. Render pages through `BaseLayout.astro` (which wires `SeoHead.astro` + landmarks).
+5. Build JSON-LD with the typed `src/lib/schema.ts` builders (or copy the `structured-data-patterns.md` graphs) per page archetype.
+6. Run `npm run verify` (build + validate). The validator enforces the critical surface; `npm run verify:deployed` runs the headless axe-core smoke test against the live URL.
 7. Re-run the external AIO audit. Target 80%+ readiness.
 
 ## Non-goals

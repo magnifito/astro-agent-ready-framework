@@ -1,0 +1,17 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "$SITE_NAME",
+  "name_for_model": "$SITE_SNAKE_NAME",
+  "description_for_human": "$SITE_SUMMARY",
+  "description_for_model": "Use this plugin to look up $SITE_NAME services and submit a project inquiry through the public contact action. Resource index at $SITE_URL/ai-catalog.json; full context at $SITE_URL/llms-full.txt.",
+  "auth": {
+    "type": "none"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "$SITE_URL/openapi.json"
+  },
+  "logo_url": "$SITE_URL/logo.png",
+  "contact_email": "$SITE_EMAIL",
+  "legal_info_url": "$SITE_URL/terms/"
+}

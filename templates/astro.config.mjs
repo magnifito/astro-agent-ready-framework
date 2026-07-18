@@ -15,7 +15,14 @@ export default defineConfig({
       changefreq: "weekly",
       // Hide utility routes from the public sitemap.
       filter: (page) => !page.includes("/thank-you/"),
-      lastmod: new Date(),
+      // Do NOT stamp build time as lastmod — a global `new Date()` makes every
+      // URL look freshly updated on every build and destroys freshness signals.
+      // Set lastmod per-URL from real content dates via the `serialize` hook:
+      // serialize(item) {
+      //   const date = contentDateFor(item.url); // look up your content's updatedAt
+      //   if (date) item.lastmod = new Date(date).toISOString();
+      //   return item;
+      // },
       priority: 0.8,
     }),
     markdownForAgents(),

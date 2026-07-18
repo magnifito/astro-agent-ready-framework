@@ -1,6 +1,14 @@
 # Structured Data Patterns
 
-JSON-LD `@graph` skeletons per page archetype. Drop into the `structuredData` prop of `SeoHead.astro`. Replace `SITE_URL`, `CANONICAL`, and entity fields.
+> **Available as typed builders.** These graphs ship as composable, typed
+> functions in `templates/src/lib/schema.ts` (`graph()`, `organization()`,
+> `webSite()`, `webPage()`, `service()`, `article()`, `breadcrumbs()`, `person()`,
+> …). Each emits its node once with the canonical `@id` and references
+> sub-entities by `@id`, so the cross-links below stay correct automatically.
+> Prefer the builders over hand-copying JSON; the skeletons here are the
+> reference for what each builder produces (and for archetypes not yet wrapped).
+
+JSON-LD `@graph` skeletons per page archetype. Drop into the `structuredData` prop of `SeoHead.astro` (or `BaseLayout.astro`). Replace `SITE_URL`, `CANONICAL`, and entity fields.
 
 All graphs share stable `@id`s so entities cross-reference:
 

@@ -1,0 +1,49 @@
+---
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import { confirmAction, graph, webPage } from "~/lib/schema";
+import { getSiteUrl, siteInfo } from "~/data/site";
+
+// Confirmation / thank-you archetype (framework.md §3, audit 3.16): a WebPage
+// carrying a potentialAction ConfirmAction so agents can verify a submission
+// completed. robots="noindex, follow" keeps this utility page out of the index
+// while still following outbound links. astro.config.mjs already excludes
+// /thank-you/ from the public sitemap.
+const siteUrl = getSiteUrl(Astro.site);
+const canonicalHref = new URL("/thank-you/", siteUrl).toString();
+const title = `Thank you | ${siteInfo.name}`;
+const description = `Your message to ${siteInfo.name} was received. We reply to every genuine inquiry.`;
+
+const structuredData = graph({
+  ...webPage({ siteUrl, canonicalHref, title, description }),
+  potentialAction: confirmAction(canonicalHref, "Confirm inquiry received"),
+});
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  canonicalPath="/thank-you/"
+  markdownPath={null}
+  robots="noindex, follow"
+  structuredData={structuredData}
+>
+  <div class="mx-auto max-w-3xl">
+    <p class="text-mint text-sm font-semibold">Message received</p>
+    <h1 class="mt-4 text-4xl leading-tight font-black sm:text-6xl">
+      Thank you
+    </h1>
+    <p class="text-muted mt-6 text-lg leading-8">
+      Your message reached {siteInfo.name}. We read every genuine inquiry and
+      will reply by email — usually within a couple of business days.
+    </p>
+    <p class="mt-10">
+      <a
+        class="text-ink font-semibold"
+        href="/"
+        data-action="go-home"
+        data-action-type="navigation"
+        data-action-label="Thank-you back to home">Back to the homepage</a
+      >
+    </p>
+  </div>
+</BaseLayout>

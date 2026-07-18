@@ -1,0 +1,57 @@
+---
+import "@fontsource-variable/inter";
+import SeoHead from "~/components/SeoHead.astro";
+import SiteFooter from "~/components/SiteFooter.astro";
+import SiteHeader from "~/components/SiteHeader.astro";
+import "~/styles/index.css";
+
+// The single place adopters wire <head> + landmarks. Every page rendered
+// through BaseLayout inherits:
+//   4.x  — meta/head elements (via SeoHead)
+//   6.3  — <header>/<main>/<footer> landmarks
+//   6.5  — labelled <nav> elements (via SiteHeader/SiteFooter)
+//   7.1  — .skip-link target (#main; emitted by SiteHeader)
+//   7.18 — non-empty, unique <title> (via SeoHead)
+//
+// Props mirror SeoHead's full surface and pass straight through, plus a
+// `mainClass` hook so pages can restyle the <main> wrapper.
+interface Props {
+  title: string;
+  description: string;
+  canonicalPath?: string;
+  canonicalHref?: string;
+  markdownPath?: string | null;
+  image?: string;
+  imageAlt?: string;
+  type?: "website" | "article";
+  robots?: string;
+  structuredData?: unknown;
+  aiInstructions?: string;
+  includeSitemaps?: boolean;
+  preconnectImages?: boolean;
+  articlePublishedTime?: string;
+  articleModifiedTime?: string;
+  author?: string;
+  prevHref?: string;
+  nextHref?: string;
+  mainClass?: string;
+}
+
+const { mainClass = "px-5 py-16 sm:px-8 lg:px-10", ...seo } = Astro.props;
+---
+
+<!doctype html>
+<!-- lang="en": change to the site's real content language (audits 4.x, 6.x). -->
+<html lang="en">
+  <head>
+    <SeoHead {...seo} />
+  </head>
+  <body class="bg-paper text-ink min-h-screen antialiased">
+    <SiteHeader />
+    <!-- #main is the .skip-link target SiteHeader emits (audits 6.3, 6.5, 7.1). -->
+    <main id="main" class={mainClass}>
+      <slot />
+    </main>
+    <SiteFooter />
+  </body>
+</html>

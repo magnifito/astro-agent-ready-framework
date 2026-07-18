@@ -49,6 +49,169 @@ function pass(msg) {
   console.log(`  ✓ ${msg}`);
 }
 
+// axe-core rules covering the category-7 audit set (7.10–7.23). Enabled on top
+// of the wcag2a/wcag2aa tag runs so the scanner-parity rules always execute.
+const AXE_RULES = [
+  "aria-hidden-body",         // 7.10
+  "aria-valid-attr",
+  "aria-valid-attr-value",
+  "aria-roles",
+  "aria-required-attr",
+  "aria-required-children",
+  "aria-required-parents",
+  "duplicate-id-aria",        // 7.14
+  "autocomplete-valid",       // 7.15
+  "nested-interactive",       // 7.16
+  "td-headers-attr",          // 7.17
+  "th-has-data-cells",        // 7.17
+  "document-title",           // 7.18
+  "frame-title",              // 7.19
+  "meta-refresh",             // 7.20
+  "tabindex",                 // 7.21
+  "marquee",                  // 7.22
+  "presentation-role-conflict", // 7.23
+];
+
+// Map axe rule id → audit number where the correspondence is obvious.
+const AXE_AUDIT_MAP = {
+  "aria-hidden-body": "7.10",
+  "duplicate-id-aria": "7.14",
+  "autocomplete-valid": "7.15",
+  "nested-interactive": "7.16",
+  "td-headers-attr": "7.17",
+  "th-has-data-cells": "7.17",
+  "document-title": "7.18",
+  "frame-title": "7.19",
+  "meta-refresh": "7.20",
+  "tabindex": "7.21",
+  "marquee": "7.22",
+  "presentation-role-conflict": "7.23",
+};
+
+// Resolve the AxeBuilder class across ESM/CJS interop, or null if not installed.
+async function loadAxeBuilder() {
+  try {
+    const mod = await import("@axe-core/playwright");
+    return mod.AxeBuilder ?? mod.default?.AxeBuilder ?? mod.default ?? null;
+  } catch {
+    return null;
+  }
+}
+
+let axeFallbackNoted = false;
+
+// Accessibility checks (category 7, axe-core-backed audits 7.10–7.23).
+// Prefers the real axe-core engine (@axe-core/playwright); falls back to the
+// hand-rolled DOM assertions below when it is not installed.
+async function runAccessibilityChecks(AxeBuilder, page, url) {
+  if (AxeBuilder) {
+    const seen = new Map();
+    // Two runs: the WCAG A/AA standards + the explicit 7.10–7.23 rule set.
+    const builders = [
+      new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]),
+      new AxeBuilder({ page }).withRules(AXE_RULES),
+    ];
+    for (const builder of builders) {
+      const { violations } = await builder.analyze();
+      for (const v of violations) if (!seen.has(v.id)) seen.set(v.id, v);
+    }
+    const violations = [...seen.values()];
+    if (violations.length === 0) {
+      pass(`axe-core accessibility audit (wcag2a/wcag2aa + 7.10–7.23)`);
+    } else {
+      for (const v of violations) {
+        const audit = AXE_AUDIT_MAP[v.id];
+        const label = audit ? `${audit} ${v.id}` : v.id;
+        fail(url, `a11y (axe) ${label}: ${v.help} [${v.nodes.length} node(s)]`);
+      }
+    }
+    return;
+  }
+
+  if (!axeFallbackNoted) {
+    console.log("  · note: install @axe-core/playwright for full axe-core parity (using hand-rolled fallback)");
+    axeFallbackNoted = true;
+  }
+  await runHandRolledA11y(page, url);
+}
+
+// Fallback: cheap dependency-free DOM assertions mirroring the axe audits.
+async function runHandRolledA11y(page, url) {
+  const a11y = await page.evaluate(() => {
+    const issues = [];
+
+    // 7.18 — non-empty <title>.
+    if (!document.title || !document.title.trim()) issues.push('7.18 empty or missing <title>');
+
+    // 7.10 — page exposed to the accessibility tree.
+    if (document.body?.getAttribute('aria-hidden') === 'true' ||
+        document.documentElement.getAttribute('aria-hidden') === 'true') {
+      issues.push('7.10 aria-hidden="true" on <body>/<html> hides the whole page');
+    }
+
+    // 7.20 — no time-based meta refresh.
+    const mr = document.querySelector('meta[http-equiv="refresh" i]');
+    if (mr && /^\s*\d+\s*;/.test(mr.getAttribute('content') || '')) {
+      issues.push('7.20 time-based <meta http-equiv="refresh"> present');
+    }
+
+    // 7.21 — no positive tabindex.
+    for (const el of document.querySelectorAll('[tabindex]')) {
+      if (Number(el.getAttribute('tabindex')) > 0) { issues.push('7.21 positive tabindex disrupts focus order'); break; }
+    }
+
+    // 7.22 — no deprecated presentational elements.
+    if (document.querySelector('marquee, blink')) issues.push('7.22 deprecated <marquee>/<blink> element');
+
+    // 7.19 — frames are titled.
+    for (const f of document.querySelectorAll('iframe')) {
+      if (!f.getAttribute('title')?.trim()) { issues.push('7.19 <iframe> without a title'); break; }
+    }
+
+    // 7.14 — ids referenced by ARIA/label are unique.
+    const seen = new Set(), dup = new Set();
+    for (const el of document.querySelectorAll('[id]')) {
+      const id = el.id;
+      if (seen.has(id)) dup.add(id); else seen.add(id);
+    }
+    for (const el of document.querySelectorAll('label[for],[aria-labelledby],[aria-describedby]')) {
+      const refs = (el.getAttribute('for') || el.getAttribute('aria-labelledby') || el.getAttribute('aria-describedby') || '').split(/\s+/);
+      if (refs.some((r) => r && dup.has(r))) { issues.push('7.14 ARIA/label reference points at a duplicated id'); break; }
+    }
+
+    // 7.16 — no nested interactive controls.
+    const INT = 'a[href],button,input,select,textarea,[role="button"],[role="link"]';
+    for (const el of document.querySelectorAll(INT)) {
+      if (el.parentElement?.closest(INT)) { issues.push('7.16 nested interactive controls'); break; }
+    }
+
+    // 7.23 — no presentation role on focusable/labeled elements.
+    for (const el of document.querySelectorAll('[role="presentation"],[role="none"]')) {
+      if (el.matches(INT) || el.hasAttribute('tabindex') || el.hasAttribute('aria-label') || el.hasAttribute('aria-labelledby')) {
+        issues.push('7.23 presentation/none role on a focusable or labeled element'); break;
+      }
+    }
+
+    // 7.15 — valid autocomplete tokens on form fields.
+    const VALID = new Set(['on','off','name','honorific-prefix','given-name','additional-name','family-name','honorific-suffix','nickname','username','new-password','current-password','one-time-code','organization-title','organization','street-address','address-line1','address-line2','address-line3','address-level4','address-level3','address-level2','address-level1','country','country-name','postal-code','cc-name','cc-given-name','cc-additional-name','cc-family-name','cc-number','cc-exp','cc-exp-month','cc-exp-year','cc-csc','cc-type','transaction-currency','transaction-amount','language','bday','bday-day','bday-month','bday-year','sex','url','photo','tel','tel-country-code','tel-national','tel-area-code','tel-local','tel-extension','email','impp']);
+    for (const el of document.querySelectorAll('input[autocomplete],select[autocomplete],textarea[autocomplete]')) {
+      const tokens = (el.getAttribute('autocomplete') || '').trim().toLowerCase().split(/\s+/).filter(Boolean);
+      if (tokens.length && !tokens.every((t) => VALID.has(t) || t.startsWith('section-') || ['shipping','billing','home','work','mobile','fax','pager'].includes(t))) {
+        issues.push(`7.15 invalid autocomplete token "${el.getAttribute('autocomplete')}"`); break;
+      }
+    }
+
+    return issues;
+  });
+  if (a11y.length === 0) {
+    pass(`accessibility structural checks (7.10–7.23)`);
+  } else {
+    for (const issue of a11y) fail(url, `a11y ${issue}`);
+  }
+}
+
+const AxeBuilder = await loadAxeBuilder();
+
 const browser = await chromium.launch({ headless: true });
 const context = await browser.newContext({
   userAgent:
@@ -182,87 +345,15 @@ for (const pageDef of pages) {
     }
   }
 
-  // Accessibility structural checks (category 7, axe-core-backed audits).
-  // These mirror what the scanner's axe runner flags; cheap DOM assertions keep
-  // the validator dependency-free. ids map to audit numbers.
-  const a11y = await page.evaluate(() => {
-    const issues = [];
-
-    // 7.18 — non-empty <title>.
-    if (!document.title || !document.title.trim()) issues.push('7.18 empty or missing <title>');
-
-    // 7.10 — page exposed to the accessibility tree.
-    if (document.body?.getAttribute('aria-hidden') === 'true' ||
-        document.documentElement.getAttribute('aria-hidden') === 'true') {
-      issues.push('7.10 aria-hidden="true" on <body>/<html> hides the whole page');
-    }
-
-    // 7.20 — no time-based meta refresh.
-    const mr = document.querySelector('meta[http-equiv="refresh" i]');
-    if (mr && /^\s*\d+\s*;/.test(mr.getAttribute('content') || '')) {
-      issues.push('7.20 time-based <meta http-equiv="refresh"> present');
-    }
-
-    // 7.21 — no positive tabindex.
-    for (const el of document.querySelectorAll('[tabindex]')) {
-      if (Number(el.getAttribute('tabindex')) > 0) { issues.push('7.21 positive tabindex disrupts focus order'); break; }
-    }
-
-    // 7.22 — no deprecated presentational elements.
-    if (document.querySelector('marquee, blink')) issues.push('7.22 deprecated <marquee>/<blink> element');
-
-    // 7.19 — frames are titled.
-    for (const f of document.querySelectorAll('iframe')) {
-      if (!f.getAttribute('title')?.trim()) { issues.push('7.19 <iframe> without a title'); break; }
-    }
-
-    // 7.14 — ids referenced by ARIA/label are unique.
-    const seen = new Set(), dup = new Set();
-    for (const el of document.querySelectorAll('[id]')) {
-      const id = el.id;
-      if (seen.has(id)) dup.add(id); else seen.add(id);
-    }
-    for (const el of document.querySelectorAll('label[for],[aria-labelledby],[aria-describedby]')) {
-      const refs = (el.getAttribute('for') || el.getAttribute('aria-labelledby') || el.getAttribute('aria-describedby') || '').split(/\s+/);
-      if (refs.some((r) => r && dup.has(r))) { issues.push('7.14 ARIA/label reference points at a duplicated id'); break; }
-    }
-
-    // 7.16 — no nested interactive controls.
-    const INT = 'a[href],button,input,select,textarea,[role="button"],[role="link"]';
-    for (const el of document.querySelectorAll(INT)) {
-      if (el.parentElement?.closest(INT)) { issues.push('7.16 nested interactive controls'); break; }
-    }
-
-    // 7.23 — no presentation role on focusable/labeled elements.
-    for (const el of document.querySelectorAll('[role="presentation"],[role="none"]')) {
-      if (el.matches(INT) || el.hasAttribute('tabindex') || el.hasAttribute('aria-label') || el.hasAttribute('aria-labelledby')) {
-        issues.push('7.23 presentation/none role on a focusable or labeled element'); break;
-      }
-    }
-
-    // 7.15 — valid autocomplete tokens on form fields.
-    const VALID = new Set(['on','off','name','honorific-prefix','given-name','additional-name','family-name','honorific-suffix','nickname','username','new-password','current-password','one-time-code','organization-title','organization','street-address','address-line1','address-line2','address-line3','address-level4','address-level3','address-level2','address-level1','country','country-name','postal-code','cc-name','cc-given-name','cc-additional-name','cc-family-name','cc-number','cc-exp','cc-exp-month','cc-exp-year','cc-csc','cc-type','transaction-currency','transaction-amount','language','bday','bday-day','bday-month','bday-year','sex','url','photo','tel','tel-country-code','tel-national','tel-area-code','tel-local','tel-extension','email','impp']);
-    for (const el of document.querySelectorAll('input[autocomplete],select[autocomplete],textarea[autocomplete]')) {
-      const tokens = (el.getAttribute('autocomplete') || '').trim().toLowerCase().split(/\s+/).filter(Boolean);
-      if (tokens.length && !tokens.every((t) => VALID.has(t) || t.startsWith('section-') || ['shipping','billing','home','work','mobile','fax','pager'].includes(t))) {
-        issues.push(`7.15 invalid autocomplete token "${el.getAttribute('autocomplete')}"`); break;
-      }
-    }
-
-    return issues;
-  });
-  if (a11y.length === 0) {
-    pass(`accessibility structural checks (7.10–7.23)`);
-  } else {
-    for (const issue of a11y) fail(url, `a11y ${issue}`);
-  }
+  // Accessibility checks (category 7, axe-core-backed audits 7.10–7.23).
+  await runAccessibilityChecks(AxeBuilder, page, url);
 
   await page.close();
 }
 
 // Machine-readable resources reachable.
 console.log(`\n→ machine-readable resources`);
-const resources = ["/llms.txt", "/llms-full.txt", "/ai-catalog.json", "/brand.json", "/mcp.json", "/openapi.json", "/navigation.json", "/robots.txt", "/humans.txt", "/.well-known/security.txt"];
+const resources = ["/llms.txt", "/llms-full.txt", "/ai-catalog.json", "/brand.json", "/mcp.json", "/openapi.json", "/navigation.json", "/agents.json", "/.well-known/ai-plugin.json", "/.well-known/mcp.json", "/robots.txt", "/humans.txt", "/.well-known/security.txt"];
 for (const path of resources) {
   const page = await context.newPage();
   const res = await page.goto(new URL(path, baseUrl).toString(), { timeout: 10000 }).catch(() => null);

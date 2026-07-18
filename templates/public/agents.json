@@ -1,0 +1,65 @@
+{
+  "name": "$SITE_NAME",
+  "description": "$SITE_SUMMARY",
+  "url": "$SITE_URL/",
+  "updated": "$UPDATED_ISO_DATE",
+  "resources": [
+    {
+      "name": "LLMs.txt",
+      "url": "$SITE_URL/llms.txt",
+      "mimeType": "text/plain",
+      "description": "Concise site map and context for AI agents."
+    },
+    {
+      "name": "Full LLM context",
+      "url": "$SITE_URL/llms-full.txt",
+      "mimeType": "text/plain",
+      "description": "Expanded company context, services, FAQ, and contact information."
+    },
+    {
+      "name": "AI catalog",
+      "url": "$SITE_URL/ai-catalog.json",
+      "mimeType": "application/json",
+      "description": "Flat index of machine-readable resources and actions."
+    },
+    {
+      "name": "MCP discovery",
+      "url": "$SITE_URL/mcp.json",
+      "mimeType": "application/json",
+      "description": "Discovery manifest listing resources and callable tools."
+    },
+    {
+      "name": "OpenAPI",
+      "url": "$SITE_URL/openapi.json",
+      "mimeType": "application/json",
+      "description": "OpenAPI 3.1 description of the public inquiry action."
+    }
+  ],
+  "actions": [
+    {
+      "name": "submit_project_inquiry",
+      "method": "POST",
+      "endpoint": "$FORM_ENDPOINT",
+      "source": "$SITE_URL/#contact",
+      "description": "Submit a public project inquiry through the $SITE_NAME contact form endpoint.",
+      "inputSchema": {
+        "type": "object",
+        "required": ["name", "email", "message"],
+        "properties": {
+          "name": { "type": "string" },
+          "email": { "type": "string", "format": "email" },
+          "message": { "type": "string" }
+        }
+      },
+      "x-webmcp-safety": {
+        "idempotent": false,
+        "destructive": false,
+        "requiresUserConsent": true
+      }
+    }
+  ],
+  "contact": {
+    "email": "$SITE_EMAIL",
+    "form": "$SITE_URL/#contact"
+  }
+}

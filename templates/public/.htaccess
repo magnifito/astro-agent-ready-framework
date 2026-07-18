@@ -31,10 +31,14 @@ ErrorDocument 404 /404.html
     Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
     # Cross-Origin isolation (framework §14 + agenticstorefront advanced security).
     # Enables SharedArrayBuffer, protects against Spectre-class side channels.
-    # Comment out if the site embeds third-party iframes that haven't adopted these headers.
-    Header always set Cross-Origin-Opener-Policy "same-origin"
-    Header always set Cross-Origin-Embedder-Policy "require-corp"
-    Header always set Cross-Origin-Resource-Policy "same-site"
+    # DISABLED by default: require-corp blocks any cross-origin image/font/script
+    # that doesn't send CORP/CORS headers (this template preconnects to
+    # images.unsplash.com, so a CDN hero would break). Enable ONLY if the site
+    # needs cross-origin isolation AND every embedded cross-origin resource sends
+    # CORP or CORS headers.
+    # Header always set Cross-Origin-Opener-Policy "same-origin"
+    # Header always set Cross-Origin-Embedder-Policy "require-corp"
+    # Header always set Cross-Origin-Resource-Policy "same-site"
     # Tune CSP per site. Sample (Unsplash + Web3Forms):
     # Header always set Content-Security-Policy "default-src 'self'; img-src 'self' https://images.unsplash.com data:; style-src 'self' 'unsafe-inline'; script-src 'self'; form-action 'self' https://api.web3forms.com; frame-ancestors 'self'"
 </IfModule>
@@ -58,14 +62,14 @@ ErrorDocument 404 /404.html
 
 # --- CORS: RSS, sitemap, robots, navigation, AI catalog, OpenAPI ---
 <IfModule mod_headers.c>
-    <FilesMatch "^(sitemap.*\.xml|rss\.xml|robots\.txt|humans\.txt|navigation\.json|ai-catalog\.json|brand\.json|openapi\.json|mcp\.json)$">
+    <FilesMatch "^(sitemap.*\.xml|rss\.xml|robots\.txt|humans\.txt|navigation\.json|ai-catalog\.json|brand\.json|openapi\.json|mcp\.json|agents\.json)$">
         Header always set Access-Control-Allow-Origin "*"
     </FilesMatch>
 </IfModule>
 
 # --- AI and crawler resources: short cache ---
 <IfModule mod_headers.c>
-    <FilesMatch "^(llms(-full)?\.txt|robots\.txt|humans\.txt|navigation\.json|ai-catalog\.json|brand\.json|openapi\.json|mcp\.json|rss\.xml|.*\.md)$">
+    <FilesMatch "^(llms(-full)?\.txt|robots\.txt|humans\.txt|navigation\.json|ai-catalog\.json|brand\.json|openapi\.json|mcp\.json|agents\.json|rss\.xml|.*\.md)$">
         Header always set Cache-Control "public, max-age=86400"
     </FilesMatch>
 </IfModule>

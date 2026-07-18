@@ -1,0 +1,80 @@
+# AIO framework — continuous verification.
+#
+# Two jobs:
+#   1. build     — always runs. Builds the site and runs the build-time
+#                  AI-readiness regression test (scripts/validate-built-site.js).
+#   2. headless  — optional post-deploy smoke test against a LIVE URL. Only runs
+#                  when a repository (or environment) variable `SITE_URL` is set,
+#                  so forks / fresh clones don't fail on a missing URL.
+#
+# Enable the headless job:
+#   GitHub → Settings → Secrets and variables → Actions → Variables →
+#   New repository variable → name: SITE_URL, value: https://your-domain.com
+#
+# The `${{ vars.SITE_URL }}` / `${SITE_URL}` forms below use `${…}`, which the
+# `npm run init` token replacer deliberately does NOT rewrite (it only touches
+# bare `$TOKEN` names), so this workflow keeps working after initialisation.
+
+name: verify
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Cancel superseded runs on the same ref to save CI minutes.
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: build + validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # `verify` = build + validate:build (see package.json).
+      - name: Build and validate
+        run: npm run verify
+
+  headless:
+    name: headless smoke (deployed)
+    runs-on: ubuntu-latest
+    # Only run when the SITE_URL repo/environment variable is configured.
+    if: ${{ vars.SITE_URL != '' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Playwright's browser binary isn't in node_modules — fetch Chromium + its
+      # system libs. Chromium alone keeps the download small.
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      # Drives a real headless browser at the deployed site and asserts the
+      # AI-agent signals (SSR ratio, JSON-LD @types, SearchAction, data-action,
+      # canonical, CORS, axe-core a11y audits).
+      - name: Headless validation
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+        run: node scripts/validate-headless.js "${SITE_URL}"

@@ -122,7 +122,14 @@ export default defineConfig({
     sitemap({
       changefreq: "weekly",
       filter: (page) => !page.includes("/thank-you/"),
-      lastmod: new Date(),
+      // Do NOT set a global lastmod: new Date() — build-time stamping makes every
+      // URL look freshly modified on every build and destroys the freshness
+      // signal. Set lastmod per-URL from a real content date via `serialize`:
+      //   serialize(item) {
+      //     const date = contentDateFor(item.url); // your content's updatedAt
+      //     if (date) item.lastmod = new Date(date).toISOString();
+      //     return item;
+      //   },
       priority: 0.8,
     }),
     markdownForAgents(),               // emits /path/index.md next to index.html
@@ -272,7 +279,7 @@ Same pattern for `insights/[slug].astro` with `Article` graph.
 Two sitemaps coexist:
 
 1. **`@astrojs/sitemap` integration** — emits `/sitemap-index.xml` and `/sitemap-0.xml` automatically. Respects `trailingSlash: "always"`. Filter hides utility pages.
-2. **`src/pages/sitemap.xml.ts`** — explicit sitemap of hand-rolled routes with custom priority/lastmod. Useful if deployment target only inspects `/sitemap.xml`.
+2. **`src/pages/sitemap.xml.ts`** — explicit sitemap of hand-rolled routes with custom priority. `lastmod` is emitted per route **only when a real content date exists** (never build-time stamped); routes without one omit it. Useful if deployment target only inspects `/sitemap.xml`.
 
 Both are referenced in `robots.txt`. The audit's "Sitemap exists" check tolerates either.
 

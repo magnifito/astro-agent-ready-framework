@@ -7,9 +7,14 @@
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=()
-  Cross-Origin-Opener-Policy: same-origin
-  Cross-Origin-Embedder-Policy: require-corp
-  Cross-Origin-Resource-Policy: same-site
+  # Cross-Origin isolation. DISABLED by default: require-corp blocks any
+  # cross-origin image/font/script lacking CORP/CORS headers (this template
+  # preconnects to images.unsplash.com, so a CDN hero would break). Enable ONLY
+  # if the site needs cross-origin isolation AND every embedded cross-origin
+  # resource sends CORP or CORS headers.
+  # Cross-Origin-Opener-Policy: same-origin
+  # Cross-Origin-Embedder-Policy: require-corp
+  # Cross-Origin-Resource-Policy: same-site
   # Enable HSTS only once HTTPS-only:
   # Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
   # Tune CSP per site:
@@ -69,6 +74,11 @@
   Content-Type: application/json; charset=utf-8
 
 /openapi.json
+  Access-Control-Allow-Origin: *
+  Cache-Control: public, max-age=86400
+  Content-Type: application/json; charset=utf-8
+
+/agents.json
   Access-Control-Allow-Origin: *
   Cache-Control: public, max-age=86400
   Content-Type: application/json; charset=utf-8

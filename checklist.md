@@ -24,9 +24,9 @@ All entries cite the `fix` or `impact` guidance from `audit-metadata.json`.
 | 1.5 | high | llms.txt links valid | ✅ `validate-built-site.js` asserts each declared URL resolves to a dist file |
 | 1.6 | high | llms-full.txt present | ✅ `templates/public/llms-full.txt` |
 | 1.7 | critical | sitemap.xml exists | ✅ `@astrojs/sitemap` + `src/pages/sitemap.xml.ts` |
-| 1.8 | medium | Sitemap includes all key pages | ✅ sitemap iterates `services[]` + `insights[]` + `authors[]`; integration picks up `[slug]` routes |
+| 1.8 | medium | Sitemap includes all key pages | ✅ `@astrojs/sitemap` auto-includes every built page (incl. `[slug]` routes); `src/pages/sitemap.xml.ts` lists key index routes and can map `services[]`/`insights[]` (opt-in, commented) |
 | 1.9 | high | Sitemap absolute URLs | ✅ `new URL(route.loc, site).toString()` |
-| 1.10 | medium | Sitemap lastmod | ✅ every entry emits ISO `<lastmod>` |
+| 1.10 | medium | Sitemap lastmod | ✅ `<lastmod>` emitted **only** from a real content date, never build-time stamped; entries with no known date omit it (framework §14) |
 | 1.11 | medium | RSS/Atom link present | ✅ `SeoHead.astro` emits `rel="alternate" type="application/rss+xml"` |
 | 1.12 | medium | RSS feed content complete | ✅ `rss.xml.ts` uses `content:encoded` with full body text |
 | 1.13 | critical | No noindex on homepage | ✅ `SeoHead.astro` only emits `meta robots` when `robots` prop set |
@@ -86,7 +86,7 @@ All entries cite the `fix` or `impact` guidance from `audit-metadata.json`.
 | 3.4 | high | WebSite schema with SearchAction | ✅ homepage graph includes `WebSite.potentialAction: SearchAction` with `urlTemplate` + `query-input` |
 | 3.5 | medium | BreadcrumbList | ✅ every non-home archetype |
 | 3.6 | high | Article schema | ✅ article/insight archetype with `headline`, `datePublished`, `dateModified`, `author` |
-| 3.7 | medium | FAQPage schema | ✅ homepage when `faqs[]` populated |
+| 3.7 | medium | FAQPage schema | ✅ `src/pages/index.astro` emits `FAQPage` from its `faqs[]` array (same array renders the visible FAQ) |
 | 3.8 | medium | Service/Product schema | ✅ `Service` on every service page; `Product` pattern for commerce |
 | 3.9 | low | Speakable schema | ✅ every archetype emits `speakable.cssSelector` |
 | 3.10 | medium | potentialAction on service pages | ✅ `ContactAction` on `Organization` + per-`Service` (patterns doc updated) |
@@ -95,10 +95,20 @@ All entries cite the `fix` or `impact` guidance from `audit-metadata.json`.
 | 3.13 | medium | Review / AggregateRating | 💠 pattern in `structured-data-patterns.md` §Review. Apply when testimonials exist |
 | 3.14 | medium | Offer schema on pricing pages | 💠 pattern §Pricing — `Offer` with `price`, `priceCurrency`, `availability`, `priceValidUntil` |
 | 3.15 | medium | Author schema with credentials | ✅ `Person` with `jobTitle`, `sameAs`, `affiliation`, `hasCredential` in article graph; author page template |
-| 3.16 | low | ConfirmAction / ReserveAction | ✅ `thank-you.astro` emits `WebPage.potentialAction: ConfirmAction` |
+| 3.16 | low | ConfirmAction / ReserveAction | ✅ `src/pages/thank-you.astro` ships — `WebPage` + `potentialAction: ConfirmAction` (via `confirmAction()` in `schema.ts`), `robots="noindex, follow"`; astro.config already excludes `/thank-you/` from the sitemap |
 | 3.21 | high | Product identifiers (GTIN/UPC/MPN) | ❌ commerce only — pattern §Commerce includes `sku`, `gtin13`, `mpn` |
 | 3.22 | medium | Advanced product details | ❌ commerce only — pattern includes `brand`, `category`, `availability` |
 | 3.23 | low | Product reviews and ratings | ❌ commerce only — pattern includes `aggregateRating`, `review[]` |
+
+> **On the 3.17–3.20 ID gap:** category 3 has exactly **19 audits** (3.1–3.16,
+> 3.21–3.23). IDs 3.17–3.20 are **not present** in the canonical
+> `audit-metadata.json` (`structured-data` category, 19 entries; file
+> `totalAudits: 199`) — the audit engine's numbering skips them, so there are no
+> audits to enumerate there. They are left as reserved gaps, not omissions.
+> Homepage-archetype structured-data rows (3.3, 3.4, 3.7, 3.9, plus the
+> OfferCatalog) are satisfied by `src/pages/index.astro`, which emits the full
+> homepage `@graph` (Organization + WebSite/SearchAction + WebPage/speakable +
+> OfferCatalog + per-Service nodes + FAQPage).
 
 ---
 
@@ -144,14 +154,14 @@ All emitted by `SeoHead.astro`:
 | 5.7 | medium | AI Catalog exists | ✅ `public/ai-catalog.json` |
 | 5.8 | medium | AI Catalog complete metadata | ✅ name/url/updated/summary/contact/resources/actions |
 | 5.9 | medium | AI Catalog service URLs valid | ✅ generated from `services.ts` |
-| 5.10 | medium | agents.json exists | ⚠️ add per site — copy `ai-catalog.json` shape to `/agents.json` if agents-mailbox pattern needed |
-| 5.11 | medium | ai-plugin.json exists | ⚠️ add `public/.well-known/ai-plugin.json` for ChatGPT plugin compatibility |
-| 5.12 | medium | MCP server discovery file | ✅ `public/mcp.json` |
+| 5.10 | medium | agents.json exists | ✅ `templates/public/agents.json` (resources + actions + contact); `SeoHead.astro` emits its `rel="alternate"` head link, CORS-enabled in `.htaccess`/`_headers` |
+| 5.11 | medium | ai-plugin.json exists | ✅ `templates/public/.well-known/ai-plugin.json` |
+| 5.12 | medium | MCP server discovery file | ✅ `public/mcp.json` (also copied to `public/.well-known/mcp.json`) |
 | 5.13 | high | MCP endpoint functional | ⚠️ static discovery satisfies the check; live MCP server optional |
 | 5.14 | medium | MCP advertises capabilities | ✅ `resources` + `tools` arrays |
 | 5.15 | high | Contact/lead form endpoint | ✅ OpenAPI documents it; `mcp.json` lists it as a tool |
 | 5.16 | medium | Search endpoint functional | ❌ only when site search exists. If added, document in OpenAPI + `WebSite.SearchAction` (audit 3.4) already references the endpoint |
-| 5.17 | low | data-action attributes on CTAs | ✅ convention — `data-action` / `data-action-type` / `data-action-label` on every template CTA |
+| 5.17 | low | data-action attributes on CTAs | ✅ `data-action` / `data-action-type` / `data-action-label` triplet on every template CTA — homepage hero, service/insight links (`view-service`/`read-insight`), and contact form (`data-action="contact"`) |
 | 5.18 | high | Forms don't use blocking CAPTCHA | ✅ honeypot (`botcheck` hidden input), no CAPTCHA |
 | 5.19 | medium | Forms work without JavaScript | ✅ pure HTML `action="POST"` form |
 | 5.20 | high | WebMCP discovery manifest | ✅ `mcp.json` |
@@ -191,7 +201,12 @@ All emitted by `SeoHead.astro`:
 
 > 7.10–7.23 are axe-core-backed structural checks (added when the scanner moved
 > to axe-core). They are mostly authoring conventions — get them right once in
-> the templates and every page passes.
+> the templates and every page passes. `scripts/validate-headless.js` runs the
+> **real `@axe-core/playwright` engine** (`wcag2a`/`wcag2aa` tags + the explicit
+> 7.10–7.23 rule set) for production-scanner parity, degrading to a hand-rolled
+> DOM fallback covering the same audits when the dependency is absent. The 🔧
+> rows below depend on site-authored markup (tables, iframes, form fields, ARIA
+> widgets) — axe-core verifies them on the deployed page.
 
 | # | Prio | Check | Coverage |
 |---|---|---|---|
@@ -243,8 +258,8 @@ All emitted by `SeoHead.astro`:
 | 8.16 | high | LCP element not lazy-loaded | ⚠️ hero gets `fetchpriority="high"`, no `loading="lazy"` |
 | 8.17 | low | Preconnect hints | ✅ `SeoHead.astro` `preconnectImages` prop |
 | 8.18 | high | No broken AI endpoints | ✅ validator asserts every AI file exists in dist |
-| 8.19 | medium | Privacy policy exists | ⚠️ add `src/pages/privacy.astro`, linked in `SiteFooter` |
-| 8.20 | medium | Terms of service exists | ⚠️ add `src/pages/terms.astro`, linked in `SiteFooter` |
+| 8.19 | medium | Privacy policy exists | ✅ `src/pages/privacy.astro` stub shipped (`WebPage` + `BreadcrumbList` + `<time>`); replace `$PRIVACY_*` / `$LEGAL_LAST_UPDATED` copy before launch |
+| 8.20 | medium | Terms of service exists | ✅ `src/pages/terms.astro` stub shipped; replace `$TERMS_*` / `$LEGAL_LAST_UPDATED` copy before launch |
 | 8.21 | low | Frontend framework detection | ✅ Astro sets `<meta name="generator">` automatically |
 
 ---
@@ -253,7 +268,7 @@ All emitted by `SeoHead.astro`:
 
 | # | Prio | Check | Coverage |
 |---|---|---|---|
-| 9.1 | medium | FAQ sections present | ⚠️ homepage template has `faqs[]` array |
+| 9.1 | medium | FAQ sections present | ⚠️ `src/pages/index.astro` ships the FAQ section (question-formatted `<h3>`s); fill the `$FAQ_*` copy |
 | 9.2 | medium | Question-formatted headings | ⚠️ content task — "What is X?", "How does X work?" |
 | 9.3 | high | First paragraph answers primary question | ⚠️ content task — enforce in review |
 | 9.4 | medium | Direct definitions for key terms | ⚠️ content task — pair with `<dfn>`/`<dl>` (audit 6.13) |
@@ -276,8 +291,8 @@ All emitted by `SeoHead.astro`:
 | 10.3 | medium | Author page exists | ✅ `src/pages/authors/[slug].astro` + `src/pages/authors/index.astro` templates |
 | 10.4 | medium | About page with credentials | ⚠️ homepage about section or `/about/` page — populate with clients, experience, positioning |
 | 10.5 | medium | External citations | ⚠️ content task — ≥2 outbound links per content page to authoritative sources |
-| 10.6 | medium | Brand name in body text | ⚠️ content task — 2–3× on homepage beyond logo |
-| 10.7 | medium | Trust signals on homepage | ⚠️ client logos, testimonials, metrics. Do not fabricate |
+| 10.6 | medium | Brand name in body text | ⚠️ `src/pages/index.astro` places `$SITE_NAME` 4–5× in body copy (hero, sections, contact); keep it natural when you fill copy |
+| 10.7 | medium | Trust signals on homepage | ⚠️ `src/pages/index.astro` ships a trust-signals `<aside>` placeholder — fill with real client logos, testimonials, metrics. Do not fabricate |
 | 10.8 | medium | Review/testimonial signals | ⚠️ when testimonials exist, use `Review`/`AggregateRating` JSON-LD **or** attributed `<blockquote cite>` with `<cite>` and `<footer>` (pattern in `structured-data-patterns.md`) |
 | 10.9 | medium | Publication date visible | ✅ article template renders `<time datetime={publishedAt}>` |
 | 10.10 | medium | dateModified in schema | ✅ article JSON-LD includes `dateModified`; must be updated on revision |
@@ -359,23 +374,30 @@ Pick one variant, apply its extras on top of the base framework. All variants in
 
 | Category | Audits | ✅ | ⚠️ | 🔧 | 💠 | ❌ |
 |---|---|---|---|---|---|---|
-| Content Discoverability | 23 | 15 | 6 | 1 | 0 | 1 |
+| Content Discoverability | 23 | 18 | 3 | 1 | 1 | 0 |
 | AI Crawler Permissions | 26 | 24 | 1 | 1 | 0 | 0 |
-| Structured Data | 19 | 11 | 0 | 0 | 4 | 3* (*commerce) |
+| Structured Data | 19 | 12 | 0 | 0 | 4 | 3* (*commerce) |
 | Meta Tags | 20 | 19 | 1 | 0 | 0 | 0 |
-| Agent Tools | 25 | 19 | 3 | 0 | 0 | 2 |
+| Agent Tools | 25 | 22 | 1 | 0 | 0 | 2 |
 | Semantic HTML | 17 | 2 | 15 | 0 | 0 | 0 |
 | Accessibility | 23 | 13 | 3 | 6 | 0 | 1 |
-| Technical Readiness | 21 | 10 | 5 | 6 | 0 | 0 |
+| Technical Readiness | 21 | 13 | 4 | 4 | 0 | 0 |
 | Answer Engine | 11 | 0 | 11 | 0 | 0 | 0 |
-| Generative Engine | 15 | 7 | 8 | 0 | 0 | 0 |
-| **Total** | **200** | **120** | **53** | **14** | **4** | **7** |
+| Generative Engine | 15 | 8 | 7 | 0 | 0 | 0 |
+| **Total** | **200** | **131** | **46** | **12** | **5** | **6** |
+
+Counts are exact — each category row sums to its Audits value, and the tally
+columns sum to 200. The framework carries 200 audits; the canonical
+`audit-metadata.json` lists 199 (its `accessibility` category holds 22 to the
+framework's 23 — the framework counts 7.1–7.23 explicitly). `❌` totals 6:
+the three commerce-only structured-data rows (3.21–3.23), the two commerce/
+account agent-tool rows (5.16, 5.25), and one accessibility row (7.9, modals).
 
 Interpretation:
-- **112 ✅** pass automatically once templates are copied and the build validator runs.
-- **54 ⚠️** require content discipline — data files populated, semantic markup used, dates added, bylines written.
-- **11 🔧** require hosting/CDN/WAF configuration (HTTPS, CSP, CDN, focus styles, contrast, bot-detection allowlist).
-- **4 💠** apply per page archetype — activate when pricing / HowTo / testimonials / local-business pages exist.
-- **6 ❌** out of scope for non-commerce sites — activate on stores (Product + GTIN/UPC/MPN + brand/category/availability + reviews + WebMCP commerce tools).
+- **131 ✅** pass automatically once templates are copied and the build validator runs.
+- **46 ⚠️** require content discipline — data files populated, semantic markup used, dates added, bylines written.
+- **12 🔧** require hosting/CDN/WAF configuration (HTTPS, CSP, CDN, bot-detection allowlist, and the axe-core structural rows that depend on site-authored markup).
+- **5 💠** apply per page archetype — activate when pricing / HowTo / testimonials / local-business pages exist, plus the commerce-links row.
+- **6 ❌** out of scope for non-commerce sites — activate on stores (Product + GTIN/UPC/MPN + brand/category/availability + reviews + WebMCP commerce tools), search/account/live-data variants, and modal dialogs.
 
 Target: running `npm run verify` after copying templates + populating content data → site scores 80%+ on audit. Filling the ⚠️ content-discipline items reliably pushes past 90%.

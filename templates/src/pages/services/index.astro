@@ -1,0 +1,72 @@
+---
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import { breadcrumbs, collectionPage, graph } from "~/lib/schema";
+import { getSiteUrl, siteInfo } from "~/data/site";
+
+// Service index archetype: CollectionPage + ItemList + BreadcrumbList
+// (audit 3.5). Swap the inline placeholder for the real data array:
+//
+// import { services } from "~/data/services";
+//
+// The inline fallback below keeps this file renderable on its own and mirrors
+// the ~/data/services `Service` shape.
+const services = [
+  { title: "$SERVICE_ONE_TITLE", summary: "$SERVICE_ONE_SUMMARY", href: "/services/$SERVICE_ONE_SLUG/" },
+  { title: "$SERVICE_TWO_TITLE", summary: "$SERVICE_TWO_SUMMARY", href: "/services/$SERVICE_TWO_SLUG/" },
+] as const;
+
+const siteUrl = getSiteUrl(Astro.site);
+const canonicalHref = new URL("/services/", siteUrl).toString();
+const title = `Services | ${siteInfo.name}`;
+const description = `The services ${siteInfo.name} offers, and how to start a project.`;
+
+const structuredData = graph(
+  collectionPage({
+    siteUrl,
+    canonicalHref,
+    title,
+    description,
+    items: services.map((s) => ({
+      name: s.title,
+      description: s.summary,
+      url: new URL(s.href, siteUrl).toString(),
+    })),
+  }),
+  breadcrumbs([
+    { name: siteInfo.name, item: `${siteUrl}/` },
+    { name: "Services", item: canonicalHref },
+  ]),
+);
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  canonicalPath="/services/"
+  structuredData={structuredData}
+>
+  <div class="mx-auto max-w-4xl">
+    <h1 class="text-4xl leading-tight font-black sm:text-6xl">Services</h1>
+    <p class="text-muted mt-6 max-w-2xl text-lg leading-8">
+      {description}
+    </p>
+
+    <ul class="mt-12 grid gap-6 sm:grid-cols-2">
+      {
+        services.map((s) => (
+          <li>
+            {/* audit 6.4 — each self-contained card is an <article> */}
+            <article class="border-ink/10 h-full rounded-lg border p-6">
+              <h2 class="text-2xl font-black">
+                <a class="text-ink" href={s.href}>
+                  {s.title}
+                </a>
+              </h2>
+              <p class="text-muted mt-3 leading-7">{s.summary}</p>
+            </article>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</BaseLayout>

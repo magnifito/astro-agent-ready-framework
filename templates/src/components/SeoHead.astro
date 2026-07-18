@@ -16,6 +16,8 @@ interface Props {
   markdownPath?: string | null;
   image?: string;
   imageAlt?: string;
+  imageWidth?: string;    // og:image:width — pair with image
+  imageHeight?: string;   // og:image:height — pair with image
   type?: "website" | "article";
   robots?: string;
   structuredData?: unknown;
@@ -37,6 +39,8 @@ const {
   markdownPath,
   image,
   imageAlt,
+  imageWidth,
+  imageHeight,
   type = "website",
   robots,
   structuredData,
@@ -57,12 +61,16 @@ const markdownHref =
   markdownPath === null
     ? undefined
     : absoluteUrl(markdownPath ?? markdownPathFor(path), siteUrl);
+// Absolutize og:image/twitter:image — a relative path yields invalid OG.
+// absoluteUrl uses new URL(path, base), so an already-absolute URL passes through.
+const imageUrl = image ? absoluteUrl(image, siteUrl) : undefined;
 
 const llmsUrl = absoluteUrl(resourcePaths.llms, siteUrl);
 const llmsFullUrl = absoluteUrl(resourcePaths.llmsFull, siteUrl);
 const rssUrl = absoluteUrl(resourcePaths.rss, siteUrl);
 const aiCatalogUrl = absoluteUrl(resourcePaths.aiCatalog, siteUrl);
 const brandUrl = absoluteUrl(resourcePaths.brand, siteUrl);
+const agentsUrl = absoluteUrl(resourcePaths.agents, siteUrl);
 const humansUrl = absoluteUrl(resourcePaths.humans, siteUrl);
 const openApiUrl = absoluteUrl(resourcePaths.openApi, siteUrl);
 const mcpUrl = absoluteUrl(resourcePaths.mcp, siteUrl);
@@ -89,6 +97,7 @@ const sitemapIndexUrl = absoluteUrl(resourcePaths.sitemapIndex, siteUrl);
 <link rel="alternate" type="application/rss+xml" title={`${siteInfo.name} RSS`} href={rssUrl} />
 <link rel="alternate" type="application/json" title={`${siteInfo.name} AI catalog`} href={aiCatalogUrl} />
 <link rel="alternate" type="application/json" title={`${siteInfo.name} brand profile`} href={brandUrl} />
+<link rel="alternate" type="application/json" title={`${siteInfo.name} agent manifest`} href={agentsUrl} />
 <link rel="author" type="text/plain" href={humansUrl} />
 <link rel="alternate" type="application/json" title={`${siteInfo.name} OpenAPI`} href={openApiUrl} />
 <link rel="alternate" type="application/json" title={`${siteInfo.name} MCP discovery`} href={mcpUrl} />
@@ -107,9 +116,12 @@ const sitemapIndexUrl = absoluteUrl(resourcePaths.sitemapIndex, siteUrl);
 <meta property="og:title" content={title} />
 <meta property="og:type" content={type} />
 <meta property="og:description" content={description} />
-{image && <meta property="og:image" content={image} />}
-{image && imageAlt && <meta property="og:image:alt" content={imageAlt} />}
+{imageUrl && <meta property="og:image" content={imageUrl} />}
+{imageUrl && imageAlt && <meta property="og:image:alt" content={imageAlt} />}
+{imageUrl && imageWidth && <meta property="og:image:width" content={imageWidth} />}
+{imageUrl && imageHeight && <meta property="og:image:height" content={imageHeight} />}
 <meta property="og:url" content={canonicalHref} />
+<meta property="og:locale" content={siteInfo.locale} />
 <meta property="og:site_name" content={siteInfo.name} />
 { articlePublishedTime && (
   <meta property="article:published_time" content={articlePublishedTime} />
@@ -120,7 +132,7 @@ const sitemapIndexUrl = absoluteUrl(resourcePaths.sitemapIndex, siteUrl);
 <meta name="twitter:card" content={image ? "summary_large_image" : "summary"} />
 <meta name="twitter:title" content={title} />
 <meta name="twitter:description" content={description} />
-{image && <meta name="twitter:image" content={image} />}
+{imageUrl && <meta name="twitter:image" content={imageUrl} />}
 <meta name="theme-color" content={siteInfo.themeColor} />
 {
   structuredData && (

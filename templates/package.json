@@ -4,6 +4,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "init": "node scripts/init.mjs",
+    "indexnow": "node scripts/indexnow-ping.mjs",
     "dev": "astro dev",
     "start": "astro dev",
     "check": "astro check",
@@ -20,6 +22,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.8",
+    "@axe-core/playwright": "^4.10.0",
     "@astrojs/rss": "^4.0.18",
     "@astrojs/sitemap": "^3.7.2",
     "@puralex/astro-markdown-for-agents": "^0.2.0",

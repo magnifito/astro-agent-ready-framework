@@ -22,15 +22,16 @@ export function GET(context: APIContext) {
     site,
     xmlns: { content: "http://purl.org/rss/1.0/modules/content/" },
     customData: "<language>en-us</language>",
-    items: [
-      // insights.map((insight) => ({
-      //   title: insight.title,
-      //   description: insight.description,
-      //   content: insightContent(insight),
-      //   link: insight.href,
-      //   pubDate: new Date(insight.publishedAt),
-      //   categories: [...insight.tags],
-      // })),
-    ],
+    // Default: empty feed. Replace the line below with the commented
+    // `insights.map(...)` block to emit a full-content feed (flat array).
+    items: [],
+    // items: insights.map((insight) => ({
+    //   title: insight.title,
+    //   description: insight.description,
+    //   content: insightContent(insight),
+    //   link: insight.href,
+    //   pubDate: new Date(insight.publishedAt),
+    //   categories: [...insight.tags],
+    // })),
   });
 }

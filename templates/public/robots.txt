@@ -28,6 +28,9 @@ Allow: /
 User-agent: PerplexityBot
 Allow: /
 
+User-agent: Perplexity-User
+Allow: /
+
 User-agent: Applebot-Extended
 Allow: /
 
@@ -70,3 +73,10 @@ Allow: /
 Sitemap: $SITE_URL/sitemap.xml
 Sitemap: $SITE_URL/sitemap-index.xml
 AI-Content-Map: $SITE_URL/llms.txt
+
+# Content Signals Policy (https://contentsignals.org) — a 2025 robots.txt
+# extension (introduced by Cloudflare) that declares how crawled content may be
+# used, independently of crawl Allow/Disallow above. search=index for search
+# results, ai-input=use in AI answers/RAG, ai-train=use for model training.
+# Set ai-train=no below if you do not want your content used for AI training.
+Content-Signal: search=yes, ai-input=yes, ai-train=yes

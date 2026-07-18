@@ -1,0 +1,63 @@
+---
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import { graph, webPage } from "~/lib/schema";
+import { getSiteUrl, siteInfo } from "~/data/site";
+
+// WebPage JSON-LD + robots noindex (structured-data-patterns.md "404 page").
+// Links back to / and /llms.txt so an agent that lands here can still find the
+// site map.
+const siteUrl = getSiteUrl(Astro.site);
+const canonicalHref = new URL("/404/", siteUrl).toString();
+const title = `Page not found | ${siteInfo.name}`;
+const description =
+  "The page could not be located. Follow the links below, or use /llms.txt to find your way around the site.";
+
+const structuredData = graph(
+  webPage({ siteUrl, canonicalHref, title, description }),
+);
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  canonicalPath="/404/"
+  markdownPath={null}
+  robots="noindex, follow"
+  structuredData={structuredData}
+>
+  <div class="mx-auto max-w-3xl">
+    <p class="text-mint text-sm font-semibold">Error 404</p>
+    <h1 class="mt-4 text-4xl leading-tight font-black sm:text-6xl">
+      This page could not be found
+    </h1>
+    <p class="text-muted mt-6 text-lg leading-8">
+      The address may be mistyped or the page may have moved. Try one of these
+      instead.
+    </p>
+
+    <nav class="mt-10" aria-label="Helpful links">
+      <ul class="space-y-3">
+        <li>
+          <a
+            class="text-ink font-semibold"
+            href="/"
+            data-action="go-home"
+            data-action-type="navigation"
+            data-action-label="404 back to home">Back to the homepage</a
+          >
+        </li>
+        <li>
+          <a class="text-ink font-semibold" href="/services/">Browse services</a>
+        </li>
+        <li>
+          <a class="text-ink font-semibold" href="/insights/">Read insights</a>
+        </li>
+        <li>
+          <a class="text-ink font-semibold" href="/llms.txt">
+            /llms.txt — machine-readable site map
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</BaseLayout>

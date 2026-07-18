@@ -5,6 +5,7 @@
 //   - No reCAPTCHA iframe on critical pages
 //   - No headless-browser-detection blocker returns a 403 / challenge page
 //   - data-action attributes present on every page listed
+//   - Accessibility structural checks (category 7, axe-core-backed audits 7.10–7.23)
 //
 // Requires playwright: `npm install --save-dev playwright`
 // Run: `node scripts/validate-headless.js https://example.com`
@@ -179,6 +180,81 @@ for (const pageDef of pages) {
     } else {
       pass(`<link rel="${rel}" type="${type}">`);
     }
+  }
+
+  // Accessibility structural checks (category 7, axe-core-backed audits).
+  // These mirror what the scanner's axe runner flags; cheap DOM assertions keep
+  // the validator dependency-free. ids map to audit numbers.
+  const a11y = await page.evaluate(() => {
+    const issues = [];
+
+    // 7.18 — non-empty <title>.
+    if (!document.title || !document.title.trim()) issues.push('7.18 empty or missing <title>');
+
+    // 7.10 — page exposed to the accessibility tree.
+    if (document.body?.getAttribute('aria-hidden') === 'true' ||
+        document.documentElement.getAttribute('aria-hidden') === 'true') {
+      issues.push('7.10 aria-hidden="true" on <body>/<html> hides the whole page');
+    }
+
+    // 7.20 — no time-based meta refresh.
+    const mr = document.querySelector('meta[http-equiv="refresh" i]');
+    if (mr && /^\s*\d+\s*;/.test(mr.getAttribute('content') || '')) {
+      issues.push('7.20 time-based <meta http-equiv="refresh"> present');
+    }
+
+    // 7.21 — no positive tabindex.
+    for (const el of document.querySelectorAll('[tabindex]')) {
+      if (Number(el.getAttribute('tabindex')) > 0) { issues.push('7.21 positive tabindex disrupts focus order'); break; }
+    }
+
+    // 7.22 — no deprecated presentational elements.
+    if (document.querySelector('marquee, blink')) issues.push('7.22 deprecated <marquee>/<blink> element');
+
+    // 7.19 — frames are titled.
+    for (const f of document.querySelectorAll('iframe')) {
+      if (!f.getAttribute('title')?.trim()) { issues.push('7.19 <iframe> without a title'); break; }
+    }
+
+    // 7.14 — ids referenced by ARIA/label are unique.
+    const seen = new Set(), dup = new Set();
+    for (const el of document.querySelectorAll('[id]')) {
+      const id = el.id;
+      if (seen.has(id)) dup.add(id); else seen.add(id);
+    }
+    for (const el of document.querySelectorAll('label[for],[aria-labelledby],[aria-describedby]')) {
+      const refs = (el.getAttribute('for') || el.getAttribute('aria-labelledby') || el.getAttribute('aria-describedby') || '').split(/\s+/);
+      if (refs.some((r) => r && dup.has(r))) { issues.push('7.14 ARIA/label reference points at a duplicated id'); break; }
+    }
+
+    // 7.16 — no nested interactive controls.
+    const INT = 'a[href],button,input,select,textarea,[role="button"],[role="link"]';
+    for (const el of document.querySelectorAll(INT)) {
+      if (el.parentElement?.closest(INT)) { issues.push('7.16 nested interactive controls'); break; }
+    }
+
+    // 7.23 — no presentation role on focusable/labeled elements.
+    for (const el of document.querySelectorAll('[role="presentation"],[role="none"]')) {
+      if (el.matches(INT) || el.hasAttribute('tabindex') || el.hasAttribute('aria-label') || el.hasAttribute('aria-labelledby')) {
+        issues.push('7.23 presentation/none role on a focusable or labeled element'); break;
+      }
+    }
+
+    // 7.15 — valid autocomplete tokens on form fields.
+    const VALID = new Set(['on','off','name','honorific-prefix','given-name','additional-name','family-name','honorific-suffix','nickname','username','new-password','current-password','one-time-code','organization-title','organization','street-address','address-line1','address-line2','address-line3','address-level4','address-level3','address-level2','address-level1','country','country-name','postal-code','cc-name','cc-given-name','cc-additional-name','cc-family-name','cc-number','cc-exp','cc-exp-month','cc-exp-year','cc-csc','cc-type','transaction-currency','transaction-amount','language','bday','bday-day','bday-month','bday-year','sex','url','photo','tel','tel-country-code','tel-national','tel-area-code','tel-local','tel-extension','email','impp']);
+    for (const el of document.querySelectorAll('input[autocomplete],select[autocomplete],textarea[autocomplete]')) {
+      const tokens = (el.getAttribute('autocomplete') || '').trim().toLowerCase().split(/\s+/).filter(Boolean);
+      if (tokens.length && !tokens.every((t) => VALID.has(t) || t.startsWith('section-') || ['shipping','billing','home','work','mobile','fax','pager'].includes(t))) {
+        issues.push(`7.15 invalid autocomplete token "${el.getAttribute('autocomplete')}"`); break;
+      }
+    }
+
+    return issues;
+  });
+  if (a11y.length === 0) {
+    pass(`accessibility structural checks (7.10–7.23)`);
+  } else {
+    for (const issue of a11y) fail(url, `a11y ${issue}`);
   }
 
   await page.close();

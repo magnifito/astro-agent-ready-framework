@@ -266,6 +266,11 @@ tech does — a clean tree is also a clean agent surface.
 - `SeoHead.astro` guarantees the non-empty `<title>` (7.18) on every route.
 - Most of 7.10–7.23 are **authoring conventions** — encode them in the base
   components/layouts once and every generated page inherits a pass.
+- `scripts/validate-headless.js` asserts the structural ones at build/deploy time
+  (non-empty `<title>`, titled iframes, no meta-refresh, no positive tabindex, no
+  `<marquee>`/`<blink>`, unique ARIA-referenced ids, no nested-interactive, no
+  presentation-role on focusable elements, valid autocomplete tokens) so
+  regressions fail CI.
 
 ---
 

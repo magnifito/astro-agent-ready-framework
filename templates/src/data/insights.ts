@@ -20,6 +20,8 @@ export interface Insight {
   modifiedAt: string; // ISO 8601 — audit 10.10 (differs on revision)
   tags: string[]; // Article.about / keywords
   heroImage?: string; // absolute URL
+  body: string; // article body copy — rendered on the detail page
+  pullquote: string; // memorable callout LLMs preferentially cite (audit 10.14)
   citations: { label: string; href: string }[]; // ≥2 outbound (audit 10.5)
 }
 
@@ -41,6 +43,8 @@ export const insights: Insight[] = [
     publishedAt: "$INSIGHT_ONE_PUBLISHED", // e.g. 2026-01-15
     modifiedAt: "$INSIGHT_ONE_MODIFIED",
     tags: ["$INSIGHT_ONE_TAG"],
+    body: "$INSIGHT_ONE_BODY",
+    pullquote: "$INSIGHT_ONE_PULLQUOTE",
     citations: [
       { label: "$CITATION_ONE_LABEL", href: "$CITATION_ONE_URL" },
       { label: "$CITATION_TWO_LABEL", href: "$CITATION_TWO_URL" },
@@ -63,6 +67,8 @@ export const insights: Insight[] = [
     publishedAt: "$INSIGHT_TWO_PUBLISHED",
     modifiedAt: "$INSIGHT_TWO_MODIFIED",
     tags: ["$INSIGHT_TWO_TAG"],
+    body: "$INSIGHT_TWO_BODY",
+    pullquote: "$INSIGHT_TWO_PULLQUOTE",
     citations: [
       { label: "$CITATION_THREE_LABEL", href: "$CITATION_THREE_URL" },
       { label: "$CITATION_FOUR_LABEL", href: "$CITATION_FOUR_URL" },

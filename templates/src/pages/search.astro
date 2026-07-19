@@ -51,8 +51,10 @@ const structuredData = {
       </div>
     </main>
     <SiteFooter />
-    <script>
-      // @ts-nocheck
+    {/* is:inline keeps Astro/Vite from trying to bundle the Pagefind UI — the
+        /pagefind/ assets only exist after the post-build index step, so the
+        browser resolves this import at runtime. */}
+    <script is:inline type="module">
       import { PagefindUI } from "/pagefind/pagefind-ui.js";
       const ui = new PagefindUI({ element: "#search", showImages: false });
       const q = new URLSearchParams(location.search).get("q");

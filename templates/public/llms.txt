@@ -11,12 +11,13 @@
 
 ## Services
 
-- [Service A]($SITE_URL/services/service-a/): One-line description.
-- [Service B]($SITE_URL/services/service-b/): One-line description.
+- [$SERVICE_ONE_TITLE]($SITE_URL/services/$SERVICE_ONE_SLUG/): $SERVICE_ONE_SUMMARY
+- [$SERVICE_TWO_TITLE]($SITE_URL/services/$SERVICE_TWO_SLUG/): $SERVICE_TWO_SUMMARY
 
 ## Insights
 
-- [Insight A]($SITE_URL/insights/insight-a/): One-line description.
+- [$INSIGHT_ONE_TITLE]($SITE_URL/insights/$INSIGHT_ONE_SLUG/): $INSIGHT_ONE_DESCRIPTION
+- [$INSIGHT_TWO_TITLE]($SITE_URL/insights/$INSIGHT_TWO_SLUG/): $INSIGHT_TWO_DESCRIPTION
 
 ## Machine-Readable Resources
 

@@ -9,22 +9,21 @@ import {
   webPage,
 } from "~/lib/schema";
 import { getSiteUrl, siteInfo } from "~/data/site";
-import type { Insight } from "~/data/insights";
+import { insights, type Insight } from "~/data/insights";
 
 // Article archetype: Organization (ref) + Person author (audits 10.1–10.3) +
 // Article (datePublished/dateModified) + WebPage + BreadcrumbList (audits 3.5,
-// 3.6, 3.15, 10.10). Wire the data array, then uncomment getStaticPaths:
-//
-// import { insights } from "~/data/insights";
-//
-// export function getStaticPaths() {
-//   return insights.map((insight) => ({
-//     params: { slug: insight.slug },
-//     props: { insight },
-//   }));
-// }
-//
-// The inline fallback keeps the file typechecking until the array is wired.
+// 3.6, 3.15, 10.10). One static page per entry in ~/data/insights — add or
+// remove articles there and the routes follow automatically.
+export function getStaticPaths() {
+  return insights.map((insight) => ({
+    params: { slug: insight.slug },
+    props: { insight },
+  }));
+}
+
+// getStaticPaths always supplies `insight`; the fallback only keeps this file
+// type-safe (and renderable in isolation) if the array is ever emptied.
 const insight: Insight = (Astro.props as { insight?: Insight }).insight ?? {
   slug: "$INSIGHT_ONE_SLUG",
   title: "$INSIGHT_ONE_TITLE",
@@ -42,6 +41,8 @@ const insight: Insight = (Astro.props as { insight?: Insight }).insight ?? {
   publishedAt: "$INSIGHT_ONE_PUBLISHED",
   modifiedAt: "$INSIGHT_ONE_MODIFIED",
   tags: ["$INSIGHT_ONE_TAG"],
+  body: "$INSIGHT_ONE_BODY",
+  pullquote: "$INSIGHT_ONE_PULLQUOTE",
   citations: [
     { label: "$CITATION_ONE_LABEL", href: "$CITATION_ONE_URL" },
     { label: "$CITATION_TWO_LABEL", href: "$CITATION_TWO_URL" },
@@ -117,12 +118,12 @@ const structuredData = graph(
     <p class="article-summary mt-8 text-lg leading-8">{insight.description}</p>
 
     <div class="mt-6 leading-8">
-      <p>$INSIGHT_ONE_BODY</p>
+      <p>{insight.body}</p>
     </div>
 
     {/* audit 10.14 — memorable callout LLMs preferentially cite */}
     <blockquote class="border-lime text-ink my-10 border-l-4 pl-5 text-xl font-semibold italic">
-      <p>$INSIGHT_ONE_PULLQUOTE</p>
+      <p>{insight.pullquote}</p>
     </blockquote>
 
     {/* audit 6.6 / 10.5 — supplementary sources as an <aside>, ≥2 outbound links */}

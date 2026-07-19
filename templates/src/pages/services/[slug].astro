@@ -8,22 +8,22 @@ import {
   webPage,
 } from "~/lib/schema";
 import { getSiteUrl, siteInfo } from "~/data/site";
+import { services, type Service } from "~/data/services";
 
 // Service detail archetype: Organization (ref) + Service + WebPage +
 // BreadcrumbList + speakable + potentialAction ContactAction (audits 3.3, 3.5,
-// 3.9, 3.10). Wire the data array, then uncomment getStaticPaths:
-//
-// import { services, type Service } from "~/data/services";
-//
-// export function getStaticPaths() {
-//   return services.map((service) => ({
-//     params: { slug: service.slug },
-//     props: { service },
-//   }));
-// }
-//
-// The inline fallback keeps the file typechecking until the array is wired.
-const svc = (Astro.props as { service?: any }).service ?? {
+// 3.9, 3.10). One static page per entry in ~/data/services — add or remove
+// services there and the routes follow automatically.
+export function getStaticPaths() {
+  return services.map((service) => ({
+    params: { slug: service.slug },
+    props: { service },
+  }));
+}
+
+// getStaticPaths always supplies `service`; the fallback only keeps this file
+// type-safe (and renderable in isolation) if the array is ever emptied.
+const svc: Service = (Astro.props as { service?: Service }).service ?? {
   slug: "$SERVICE_ONE_SLUG",
   title: "$SERVICE_ONE_TITLE",
   summary: "$SERVICE_ONE_SUMMARY",

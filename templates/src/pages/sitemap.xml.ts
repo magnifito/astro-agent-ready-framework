@@ -1,28 +1,30 @@
 import type { APIContext } from "astro";
-// import { insights } from "~/data/insights";
-// import { services } from "~/data/services";
+import { insights } from "~/data/insights";
+import { services } from "~/data/services";
 
 // Hard-coded routes + data-driven routes. The @astrojs/sitemap integration
 // also emits /sitemap-index.xml automatically. This file provides an explicit
 // /sitemap.xml that some crawlers prefer.
-// `lastmod` is optional: supply it ONLY from a real content date (e.g. the
-// entry's updatedAt). Never fall back to build time — that fakes freshness.
+// `lastmod` is supplied ONLY from a real content date (here, each insight's
+// `modifiedAt`). Never fall back to build time — that fakes freshness. Add a
+// date field to your service data and map it in below if you want service
+// `lastmod` too.
 type SitemapRoute = { loc: string; priority: string; lastmod?: string };
 
 const routes: SitemapRoute[] = [
   { loc: "/", priority: "1.0" },
   { loc: "/services/", priority: "0.9" },
-  // ...services.map((service) => ({
-  //   loc: service.href,
-  //   priority: "0.8",
-  //   lastmod: service.updatedAt, // ISO date string from your content data
-  // })),
+  ...services.map((service) => ({
+    loc: service.href,
+    priority: "0.8",
+  })),
   { loc: "/insights/", priority: "0.8" },
-  // ...insights.map((insight) => ({
-  //   loc: insight.href,
-  //   priority: "0.8",
-  //   lastmod: insight.updatedAt, // ISO date string from your content data
-  // })),
+  ...insights.map((insight) => ({
+    loc: insight.href,
+    priority: "0.8",
+    lastmod: insight.modifiedAt, // ISO date string from real content data
+  })),
+  { loc: "/authors/", priority: "0.5" },
 ];
 
 function escapeXml(value: string) {

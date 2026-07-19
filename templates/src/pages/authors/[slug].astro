@@ -3,32 +3,21 @@ import "@fontsource-variable/inter";
 import SeoHead from "~/components/SeoHead.astro";
 import SiteFooter from "~/components/SiteFooter.astro";
 import SiteHeader from "~/components/SiteHeader.astro";
-// import { authors, type Author } from "~/data/authors";
+import { authors, type Author } from "~/data/authors";
 // import { insights } from "~/data/insights";
 import { getSiteUrl, siteInfo } from "~/data/site";
 import "~/styles/index.css";
 
-// Replace with real data/authors.ts export. Covers audit 3.15, 10.3.
-//
-// interface Author {
-//   slug: string;
-//   name: string;
-//   jobTitle: string;
-//   bio: string;
-//   image: string;                 // absolute URL
-//   sameAs: string[];              // LinkedIn, Twitter/X, GitHub, etc.
-//   topics: string[];              // knowsAbout
-//   credentials?: string[];
-// }
-//
-// export function getStaticPaths() {
-//   return authors.map((author) => ({
-//     params: { slug: author.slug },
-//     props: { author },
-//   }));
-// }
+// Per-author ProfilePage + Person JSON-LD (audits 3.15, 10.3). One static page
+// per entry in ~/data/authors — add contributors there and the routes follow.
+export function getStaticPaths() {
+  return authors.map((author) => ({
+    params: { slug: author.slug },
+    props: { author },
+  }));
+}
 
-const { author } = Astro.props as { author: any };
+const { author } = Astro.props as { author: Author };
 const siteUrl = getSiteUrl(Astro.site);
 const canonicalHref = new URL(`/authors/${author.slug}/`, siteUrl).toString();
 const title = `${author.name} | ${siteInfo.name}`;

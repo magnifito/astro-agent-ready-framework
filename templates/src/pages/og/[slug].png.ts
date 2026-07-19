@@ -6,30 +6,43 @@
 // Add `imageAlt` alongside.
 //
 // Requires: astro-og-canvas + canvaskit-wasm (in package.json template).
-// Replace `entries` with the real set of pages for which you want OG images.
+// The route parameter is taken from this file's name (`[slug]`); the keys of
+// `pages` below become the generated slugs. Extend `pages` with any other set
+// of pages you want OG images for.
 
 import { OGImageRoute } from "astro-og-canvas";
 import { services } from "~/data/services";
 import { insights } from "~/data/insights";
 
-const pages = Object.fromEntries([
-  ...services.map((s) => [
-    s.slug,
-    { title: s.title, description: s.intro, tag: "Service" },
-  ]),
-  ...insights.map((i) => [
-    i.slug,
-    { title: i.title, description: i.description, tag: i.label ?? "Insight" },
-  ]),
-]);
+interface OgPage {
+  title: string;
+  description: string;
+  tag: string;
+}
 
-export const { getStaticPaths, GET } = OGImageRoute({
-  param: "slug",
+const pages: Record<string, OgPage> = {
+  ...Object.fromEntries(
+    services.map((s) => [
+      s.slug,
+      { title: s.title, description: s.summary, tag: "Service" },
+    ]),
+  ),
+  ...Object.fromEntries(
+    insights.map((i) => [
+      i.slug,
+      { title: i.title, description: i.description, tag: i.tags[0] ?? "Insight" },
+    ]),
+  ),
+};
+
+export const { getStaticPaths, GET } = await OGImageRoute({
   pages,
   getImageOptions: (_path, page) => ({
     title: page.title,
     description: page.description,
-    logo: { path: "./public/logo.png" },  // optional
+    // Optional logo overlay. astro-og-canvas decodes raster images (PNG/JPG)
+    // via canvaskit — SVG is not supported here — so point this at a real
+    // raster asset if you want a logo, e.g. `logo: { path: "./public/logo.png" }`.
     bgGradient: [[16, 16, 16]],
     border: { color: [215, 255, 77], width: 24, side: "inline-start" },
     font: {

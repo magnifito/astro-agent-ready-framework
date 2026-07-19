@@ -1,0 +1,82 @@
+/* Global stylesheet — Tailwind 4 entry + design tokens + accessibility base.
+ *
+ * Imported once from BaseLayout.astro (and the standalone author/search pages
+ * that render their own <html> shell). Everything below the @import is either a
+ * design token consumed by the utility classes used throughout src/, or a
+ * category-7 accessibility good-practice rule the framework ships by default.
+ */
+
+@import "tailwindcss";
+
+/* --- Design tokens ---------------------------------------------------------
+ * Custom palette referenced by the utility classes across the templates
+ * (bg-paper, text-ink, text-mint, bg-lime, text-muted, border-ink). Swap these
+ * hex values for the real brand palette — the class names stay the same.
+ * Contrast: ink-on-paper and muted-on-paper both clear WCAG AA (audit 7.x).
+ */
+@theme {
+  --color-paper: #ffffff;
+  --color-ink: #101010;
+  --color-mint: #0f8a5f;
+  --color-lime: #d7ff4d;
+  --color-muted: #55585f;
+
+  /* Inter Variable is pulled in via @fontsource-variable/inter (see the
+   * `import "@fontsource-variable/inter"` in the layouts). Falls back to the
+   * system font stack when the font fails to load. */
+  --font-sans:
+    "Inter Variable", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* Skip-link (audit 7.1): visually hidden until focused, then pinned to the
+   * top-left so keyboard users can jump straight to <main id="main">. */
+  .skip-link {
+    position: absolute;
+    left: 0;
+    top: 0;
+    transform: translateY(-120%);
+    z-index: 100;
+    padding: 0.625rem 1rem;
+    background: var(--color-ink);
+    color: #ffffff;
+    font-weight: 600;
+    border-radius: 0 0 0.375rem 0;
+    transition: transform 0.15s ease;
+  }
+  .skip-link:focus {
+    transform: translateY(0);
+    outline: 2px solid var(--color-lime);
+    outline-offset: 2px;
+  }
+
+  /* Visible focus ring for keyboard users on every interactive element
+   * (category 7 good practice). */
+  :focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 2px;
+  }
+}
+
+/* Respect the user's reduced-motion preference (category 7 good practice):
+ * neutralise animations and smooth-scroll for anyone who has asked for less
+ * motion. Placed outside @layer so it always wins. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

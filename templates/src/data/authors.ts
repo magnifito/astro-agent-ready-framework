@@ -16,6 +16,18 @@ export interface Author {
 }
 
 export const authors: Author[] = [
+  // Example author — shares the same $AUTHOR_ONE_* tokens as the inline authors
+  // in ~/data/insights, so the byline links resolve to this profile page. Add
+  // more entries (see the commented shape below) for additional contributors.
+  {
+    slug: "$AUTHOR_ONE_SLUG",
+    name: "$AUTHOR_ONE_NAME",
+    jobTitle: "$AUTHOR_ONE_JOBTITLE",
+    bio: "$AUTHOR_ONE_BIO",
+    image: "$AUTHOR_ONE_IMAGE",
+    sameAs: ["$AUTHOR_ONE_LINKEDIN"],
+    topics: ["$AUTHOR_ONE_TOPIC"],
+  },
   // {
   //   slug: "jane-smith",
   //   name: "Jane Smith",

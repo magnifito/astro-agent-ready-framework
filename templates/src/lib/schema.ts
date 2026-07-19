@@ -35,7 +35,7 @@ export function organization(siteUrl: string = getSiteUrl()): Node {
     "@id": `${siteUrl}/#organization`,
     name: siteInfo.name,
     url: `${siteUrl}/`,
-    logo: `${siteUrl}/logo.png`, // audit 3.3 requires a logo URL
+    logo: `${siteUrl}/logo.svg`, // audit 3.3 requires a logo URL
     email: siteInfo.email,
     description: siteInfo.description,
     slogan: siteInfo.tagline,

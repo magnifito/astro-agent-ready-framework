@@ -105,7 +105,8 @@ npm run init
 | Path | Purpose | Audit coverage |
 |---|---|---|
 | `astro.config.mjs` | `@astrojs/sitemap` (no build-time lastmod — real content dates only), `markdownForAgents`, `astro-pagefind`, `astro-compressor` | 1.17, 1.7, 1.10, 4.15, 3.4, 5.16, 8.14 |
-| `package.json` | Scripts incl. `init`, `indexnow`, `verify` + `verify:deployed`; `@axe-core/playwright` dep | framework enforcement |
+| `package.json` | Scripts incl. `init`, `indexnow`, `verify` + `verify:deployed`; `@axe-core/playwright` + `@fontsource-variable/inter` deps; `overrides.vite` pins a single Vite version | framework enforcement |
+| `tsconfig.json` | Extends `astro/tsconfigs/strict`; maps the `~/*` import alias to `./src/*` | build |
 | `.github/workflows/verify.yml` | CI: build+validate on every push/PR; optional headless job gated on `vars.SITE_URL` | enforcement |
 | `scripts/init.mjs` | Interactive / `site.config.json` token replacer, IndexNow key generator, remaining-token TODO report | bootstrap |
 | `scripts/indexnow-ping.mjs` | POST sitemap URLs to `api.indexnow.org` after deploy (`npm run indexnow`) | 1.13 freshness |
@@ -124,6 +125,9 @@ npm run init
 | `public/navigation.json` | Nav + resources | 1.21 |
 | `public/openapi.json` | Contact action | 5.1–5.6, 5.15 |
 | `public/.htaccess` | Headers, CORS, cache, MIME | 2.23, 8.4–8.11 |
+| `public/favicon.svg` | Generic placeholder favicon (referenced by `SeoHead`) | 4.x |
+| `public/logo.svg` | Generic placeholder brand logo (JSON-LD `Organization.logo` (3.3), `ai-plugin.json`) | 3.3 |
+| `src/styles/index.css` | Tailwind 4 entry (`@import "tailwindcss"`) + design-token palette (`paper`/`ink`/`mint`/`lime`/`muted`) + a11y base (skip-link, `:focus-visible`, reduced-motion) | 7.1, 7.x |
 | `src/layouts/BaseLayout.astro` | `<head>` + `<header>`/`<main>`/`<footer>` landmarks; every page renders through it | 6.3, 6.5, 7.1, 7.18 |
 | `src/lib/schema.ts` | Typed `@graph` JSON-LD builders (per §3 `@id` conventions), incl. `offerCatalog()` (3.7) + `confirmAction()` (3.16) | 3.1–3.16 |
 | `src/components/SeoHead.astro` | All head elements (incl. `agents.json` alternate) | 4.1–4.19 |

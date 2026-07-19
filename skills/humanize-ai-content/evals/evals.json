@@ -1,0 +1,38 @@
+{
+  "skill_name": "humanize-ai-content",
+  "evals": [
+    {
+      "id": 0,
+      "name": "blog-post",
+      "prompt": "Our marketing intern drafted this blog post with ChatGPT (draft.md) and it reads SO AI-generated. Rewrite it so it sounds like a real person from our company wrote it. Keep all the actual product facts. Edit the file in place.",
+      "files": [
+        "blog-post"
+      ],
+      "assertions": [
+        "all facts preserved: EUR 12.50, EUR 1.80, 99.2%, founded 2019, Exact Online/Moneybird/Twinfield, 5 business days, SOC 2 Type II, 14-day trial, EUR 49/month all present and unaltered",
+        "em dashes reduced to 2 or fewer in the rewritten draft.md",
+        "zero emojis in the rewritten draft.md",
+        "buzzword purge: no 'leverage', 'delve', 'seamless', 'game-changer', 'landscape', 'unlock', 'empower', 'foster', 'pivotal', 'crucial' in the rewrite",
+        "boilerplate scaffolding gone: no 'In today's fast-paced', 'It's important to note', 'In conclusion', 'Ultimately', 'Let's dive'",
+        "rewrite is shorter than the original draft (word count)",
+        "no fabricated facts: no new numbers/claims absent from the original (bracketed author prompts allowed)"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "linkedin-post",
+      "prompt": "This LinkedIn post (post.txt) sounds like every AI-written announcement ever. Humanize it - I'm the founder posting it under my own name. Keep the real numbers. Edit the file in place.",
+      "files": [
+        "linkedin-post"
+      ],
+      "assertions": [
+        "all facts preserved: 2 million shipments, 340+ customers, 31% ETA accuracy claim, Poland/Romania/Baltics, team 28 to 45",
+        "emoji count reduced to 2 or fewer (LinkedIn register tolerates a little, not seven)",
+        "no 'testament to', 'relentless', 'incredible/incredibly', 'groundbreaking', 'journey', 'the best is yet to come' in the rewrite",
+        "checkmark-bullet scaffolding replaced (no lines starting with a checkmark emoji)",
+        "founder voice present: first-person statements that commit to something specific rather than generic gratitude boilerplate",
+        "no fabricated facts or invented anecdotes presented as real events"
+      ]
+    }
+  ]
+}

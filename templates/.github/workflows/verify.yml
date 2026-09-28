@@ -1,11 +1,13 @@
 # AIO framework — continuous verification.
 #
-# Two jobs:
+# Three jobs:
 #   1. build     — always runs. Builds the site and runs the build-time
 #                  AI-readiness regression test (scripts/validate-built-site.js).
 #   2. headless  — optional post-deploy smoke test against a LIVE URL. Only runs
 #                  when a repository (or environment) variable `SITE_URL` is set,
 #                  so forks / fresh clones don't fail on a missing URL.
+#   3. agent-lighthouse — manual dispatch against the explicit audit_url input.
+#                  Retains the upstream report without inventing a score gate.
 #
 # Enable the headless job:
 #   GitHub → Settings → Secrets and variables → Actions → Variables →
@@ -21,6 +23,12 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
+    inputs:
+      audit_url:
+        description: Deployed or staging URL to scan with Agent Lighthouse
+        required: true
+        type: string
 
 # Cancel superseded runs on the same ref to save CI minutes.
 concurrency:
@@ -78,3 +86,28 @@ jobs:
         env:
           SITE_URL: ${{ vars.SITE_URL }}
         run: node scripts/validate-headless.js "${SITE_URL}"
+
+  agent-lighthouse:
+    name: Agent Lighthouse (explicit deployment)
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Scan supplied deployment
+        env:
+          AUDIT_URL: ${{ inputs.audit_url }}
+        run: npm run audit:agent -- "${AUDIT_URL}" --output terminal,html,json --output-dir reports/agent-lighthouse
+      - name: Retain scan evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent-lighthouse-report
+          path: reports/agent-lighthouse/
+          if-no-files-found: warn

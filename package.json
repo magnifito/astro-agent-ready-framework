@@ -1,0 +1,12 @@
+{
+  "name": "astro-agent-ready-framework",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "checklist:generate": "node scripts/generate-checklist.mjs",
+    "checklist:check": "node scripts/generate-checklist.mjs --check"
+  },
+  "devDependencies": {
+    "@forkpoint/agent-lighthouse-core": "4.2.2"
+  }
+}

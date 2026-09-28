@@ -3,56 +3,85 @@
   "evals": [
     {
       "id": 0,
-      "name": "scaffold-new-site",
-      "prompt": "I'm launching a new site for my bookkeeping agency LedgerCraft (production domain will be https://ledgercraft.example, email hello@ledgercraft.example, contact form via Web3Forms at https://api.web3forms.com/submit). Set up an AI-ready Astro static site for it in ./ledgercraft \u2014 I want AI assistants and crawlers to be able to discover, quote, and act on the site. Replace any template placeholders with real values and real content (we do monthly bookkeeping, VAT filings, and payroll for small e-commerce companies in the Netherlands). Do NOT run npm install or a build \u2014 no network installs here; just tell me what remains unverified.",
-      "expected_output": "A ./ledgercraft project with the AIO template set: llms.txt/llms-full.txt, robots.txt with AI bot allows, openapi/mcp/ai-catalog/agents manifests, SeoHead/BaseLayout components, schema builders, validators; core $TOKENs replaced with LedgerCraft values and content tokens filled with real bookkeeping copy; honest note about unverified build.",
-      "files": [],
+      "name": "report-and-plain-html-source",
+      "prompt": "Review ./report-review/report-excerpt.json and ./report-review/src. This is an offline synthetic report excerpt for a plain HTML site. Explain what needs work from both the report and code. Do not access the network or edit files. The deployed revision is unknown.",
+      "expected_output": "Identifies that source already includes the canonical link reported missing from deployed HTML. Leaves deployment mismatch unresolved. Finds the missing image alt text separately from engine findings. Provides file and line evidence without adding Astro or inventing a score.",
+      "files": [
+        "report-review"
+      ],
       "assertions": [
-        "llms.txt exists in the project public/ dir and mentions LedgerCraft",
-        "robots.txt explicitly allows GPTBot, ClaudeBot and PerplexityBot",
-        "agent action manifests (openapi.json and mcp.json) exist and parse as valid JSON",
-        "no unreplaced $TOKEN placeholders remain in any project file",
-        "content reflects the real business: bookkeeping/VAT/payroll/Netherlands appear in llms.txt or pages",
-        "build validator script shipped and wired into package.json (verify script)",
-        "summary honestly states the build/install was not run and lists unverified items"
+        "Recognizes the synthetic excerpt and does not claim a real scan ran",
+        "Cites the existing canonical in src/index.html and does not blindly add a duplicate",
+        "Explains that deployed revision or rendered response evidence is needed to resolve the contradiction",
+        "Reports the missing alt text as a code finding with source evidence",
+        "No network calls or file mutations",
+        "No Astro dependency, framework clone, or invented score"
       ]
     },
     {
       "id": 1,
       "name": "retrofit-existing-site",
-      "prompt": "My existing Astro site is in ./site (BrightPath Consulting, will deploy at https://brightpath.example, email team@brightpath.example). Make it AI-ready \u2014 llms.txt, AI crawler permissions, structured data, whatever else matters, prioritized by impact. Keep my existing pages working and don't rewrite my content. Do NOT run npm install or a build; just make the changes and tell me what to verify afterwards.",
-      "expected_output": "Gap analysis, then grafted artifacts: llms.txt written from the actual BrightPath pages, robots.txt with AI bot allows, JSON-LD added to existing pages, semantic HTML fixes (h1, landmarks), agent manifests pointed at real content, validators wired into package.json. Existing pages preserved.",
+      "prompt": "My existing Astro site is in ./site (BrightPath Consulting, future domain https://brightpath.example). Improve its AI readiness using source evidence. No deployed site or report exists. Keep existing content. Do NOT run npm install, use the network, or build. Make only supported local fixes and tell me what remains unverified.",
+      "expected_output": "Local code inspection and focused fixes using existing Astro conventions. No fake Lighthouse baseline or blanket template installation. Preserves content and reports verification/deployment limits.",
       "files": [
         "existing-site"
       ],
       "assertions": [
-        "existing content preserved: about page still contains 'Founded in 2021' and index still has original service blurbs",
-        "llms.txt exists and reflects the actual BrightPath pages (mentions BrightPath and the about page)",
-        "robots.txt explicitly allows GPTBot and ClaudeBot",
-        "JSON-LD (application/ld+json) added to the homepage or a shared layout",
-        "sitemap wired (integration in astro.config or a sitemap file/route)",
-        "no unreplaced $TOKEN placeholders remain anywhere in the site",
-        "summary tells the user what to verify after npm install/build",
-        "agent-action manifests added (at least ai-catalog.json or mcp.json or agents.json) and parse as valid JSON",
-        "build validator script added and wired into package.json (a verify/validate script)"
+        "Existing content preserved, including 'Founded in 2021' and original service blurbs",
+        "No scan of the placeholder domain or fabricated report",
+        "Findings cite relevant source paths and code",
+        "No mandatory optional manifests or unrelated service-site validator",
+        "No installation or build",
+        "Local changes and missing deployed verification are distinguished"
       ]
     },
     {
       "id": 2,
       "name": "audit-built-site",
-      "prompt": "Here's the built output of my sauna studio's website in ./dist (it deploys to https://nordwind.example). Audit it for AI readiness / AIO \u2014 how discoverable and usable is it for AI assistants and agents? Give me a scored report with the most impactful fixes first. Analysis only \u2014 don't modify the files.",
-      "expected_output": "A weighted scored report across the 10 AIO categories identifying: no llms.txt, robots.txt without AI bot allows, no sitemap, no JSON-LD, no h1 (h2 used), img without alt, div-soup instead of landmarks, JS onclick CTA without data-action, no canonical/meta description; prioritized fix list by category weight.",
+      "prompt": "Inspect ./dist for this sauna studio. Its future domain is https://nordwind.example. Tell me how ready it is for AI systems. Analysis only. No network or file changes. Give a score only if the available evidence supports a real Agent Lighthouse score.",
+      "expected_output": "Local output inspection with no Lighthouse score. Evidence-backed HTML findings and explicit live-evidence gaps. Optional llms.txt absence does not become a scored failure.",
       "files": [
         "built-site"
       ],
       "assertions": [
-        "audit-report.md exists and contains a weighted category score table (8+ AIO categories with weights)",
-        "report identifies missing llms.txt",
-        "report identifies robots.txt lacking explicit AI bot allows",
-        "report identifies missing structured data / JSON-LD",
-        "report identifies semantic HTML problems (no h1 and/or img missing alt)",
-        "report has a prioritized fix list ordered by impact",
-        "dist/ files were not modified (identical to input fixture)"
+        "States local inspection and no Agent Lighthouse score",
+        "No network calls or file mutations",
+        "Identifies missing heading/alt/metadata with page evidence",
+        "Missing llms.txt is optional rather than a scored defect",
+        "Does not claim live headers, bot access, or booking execution were verified",
+        "Proposes relevant fixes without fixed category weights"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "fix-scope-deployment-mismatch",
+      "prompt": "Use ./report-review/report-excerpt.json to fix confirmed issues in ./report-review/src. The report is a synthetic example for offline review. Keep this plain HTML project. No network, deployment, or form submission is allowed. Check other source defects too.",
+      "expected_output": "Avoids changing an already-correct canonical. Inspects and addresses supported source defects or requests missing content facts. Leaves live canonical finding unresolved. Reports local proof and pending deployment evidence.",
+      "files": [
+        "report-review"
+      ],
+      "assertions": [
+        "Does not duplicate the canonical or mark its deployed finding fixed",
+        "Checks code beyond the one report finding",
+        "Does not invent an image description without evidence of its content",
+        "No Astro or npm scaffold",
+        "No network, deployment, or form submission",
+        "Separates verified local work from unresolved deployment findings"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "existing-stack-template-selection",
+      "prompt": "Review the source files in ./report-review/src and propose AI-readiness fixes. Keep this plain HTML site. You may refer to template patterns, but do not edit files or access the network.",
+      "expected_output": "Reviews the HTML directly and proposes evidence-based fixes. Does not force Astro, clone a starter, or claim unshipped framework templates exist.",
+      "files": [
+        "report-review"
+      ],
+      "assertions": [
+        "Preserves plain HTML as the project stack",
+        "No template replacement or dependency installation",
+        "No claim that non-Astro starter bundles exist in this repository",
+        "Findings use source evidence and state no Lighthouse scan ran"
       ]
     }
   ]

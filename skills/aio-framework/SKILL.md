@@ -1,83 +1,59 @@
 ---
 name: aio-framework
-description: Make any Astro static site AI-ready (AIO/AEO/GEO) using the magnifito AIO framework — scaffold a new AI-optimized site from templates, retrofit an existing Astro site, or audit any built site/URL against the framework's 200-audit checklist. Use this whenever the user mentions AI-readiness, AIO, AEO, GEO, llms.txt, AI crawlers/bots (GPTBot, ClaudeBot, PerplexityBot), agent-ready or agent-friendly sites, structured data / JSON-LD coverage, "SEO for AI", getting cited by ChatGPT/Claude/Perplexity, or wants a new Astro site that AI agents can discover and act on — even if they don't name the framework.
+description: Assess and improve website AI readiness on any stack using an Agent Lighthouse report plus source-code review. Use when a user asks to audit a site, explain or fix Lighthouse findings, or make a website easier for AI systems to discover and use. Accept a URL, report, or local project; do not require Astro.
 ---
 
-# AIO Framework
+# Website AI Readiness
 
-Framework for making Astro static sites discoverable, quotable, and actionable by AI agents. Source of truth is the repo — clone it fresh at the start of every task so templates and docs are current:
+Start with [Agent Lighthouse](https://forkpoint.github.io/agent-lighthouse/). Use its report to guide a review of the actual site code and deployment. Support any framework, CMS, or plain HTML. The skill keeps the `aio-framework` invocation name for existing users.
 
-```bash
-git clone --depth 1 https://github.com/magnifito/astro-agent-ready-framework.git /tmp/aio-framework
-```
+## Start from the user's request
 
-Key repo files (read on demand, not all upfront):
-- `framework.md` — the 10 scored categories + 4 extensions, per-category requirements and Astro wiring. Read the categories relevant to your task.
-- `checklist.md` — all 200 audits with coverage status. Use for audits and gap analysis.
-- `templates/` — copy-paste Astro starter (components, layouts, pages, public files, validators). `templates/README.md` documents every `$TOKEN` placeholder and which file covers which audit.
-- `structured-data-patterns.md` — JSON-LD graphs per page archetype; shipped as typed builders in `templates/src/lib/schema.ts`.
+- **Assess or explain:** scan/read the report, inspect available code, and report findings. Keep site files unchanged.
+- **Fix or improve:** establish findings, trace causes, apply supported fixes, and verify within the user's authorized scope.
+- **New site:** use the requested stack and an optional matching template. Read [references/templates.md](references/templates.md) for selection rules. Review the code as it develops; run a deployed baseline when a reachable URL exists.
 
-Category weights (drive priority in every workflow): Agent surfaces 18% > Content discoverability 15% > Structured data 12% > Technical/security 9% > Crawler permissions, Meta tags, Semantic HTML, GEO 8% each > AEO, Accessibility 7% each.
+Infer the project, stack, package manager, and target URL from available files and conversation. Confirm that a discovered URL belongs to this project before scanning it. Ask only for missing input that prevents useful work. Continue independent code inspection while waiting. Do not assume permission to deploy or submit real forms.
 
-## Pick the workflow
+## 1. Obtain the report
 
-- **Scaffold** — user starts a new site → copy templates, replace tokens, fill content.
-- **Retrofit** — user has an existing Astro site → gap analysis, then graft framework pieces in weight order.
-- **Audit** — user has a built site (dist/ or live URL) → run validators + checklist walk, deliver scored report.
+Read [references/scan.md](references/scan.md) for official sources, pinned invocation, report checks, and local-only limits.
 
-## Scaffold a new site
+Use a supplied report when it matches the requested site and task. Otherwise run Agent Lighthouse on the authorized reachable URL. Preserve the original JSON and HTML in a new run directory. Review validity, coverage, scan date, engine version, and options before interpreting the score.
 
-1. Collect from the user (or infer from context): site name, production origin URL, business email, tagline, 1–2 sentence summary, form endpoint (Web3Forms etc. — if none, use a placeholder endpoint and flag it). Don't block on optional values; derive sensible ones.
-2. Copy `templates/` into the project root (`rsync -a /tmp/aio-framework/templates/ ./`).
-3. Non-interactive token replacement: write a `site.config.json` with the collected values, then `node scripts/init.mjs`. It replaces core `$TOKEN`s, generates the IndexNow key file, and prints remaining content tokens as a TODO list.
-4. Fill every remaining content token (`$FAQ_*`, `$SERVICE_*`, `$INSIGHT_*`, `$AUTHOR_*`, `$PRIVACY_*`, `$TERMS_*`, `$CITATION_*`…) with real content written from the user's business context. This is deliberate: the build validator fails on ANY leftover `$TOKEN` — placeholder copy shipping to production is worse than no page. Write real FAQ answers, real service descriptions; ask the user only when you can't infer.
-5. Verify: `npm install && npm run verify` (build + `validate-built-site.js`). Fix every failure — the validator is the contract. If the environment can't install/build, say so explicitly and list what remains unverified.
-6. Deployment headers: keep `public/.htaccess` for Apache or `public/_headers` for Netlify/Cloudflare Pages; delete the other. Remind the user HSTS/CSP are commented opt-ins.
+When no usable URL or report exists, inspect the code now. State **code inspection only; no Agent Lighthouse score**. Do not scan placeholder domains or calculate a substitute score.
 
-## Retrofit an existing Astro site
+## 2. Inspect the implementation
 
-Never bulk-overwrite a working site. Graft incrementally, verifying the site still builds after each stage.
+Read [references/code-review.md](references/code-review.md). Identify the routes, shared components, data sources, server handlers, and deployment settings that produce the audited behavior.
 
-1. **Gap analysis** — check the site for: `public/llms.txt`, `robots.txt` AI-bot allows, sitemap + RSS, JSON-LD on key pages, canonical/meta head coverage, `data-action` attributes, OpenAPI/MCP/agents manifests, semantic landmarks, validators. Map findings to `checklist.md` categories; report the gaps with weights before changing anything.
-2. **Graft in weight order**, adapting to what exists:
-   - Category 5 (18%): copy `public/openapi.json`, `mcp.json`, `.well-known/*`, `ai-catalog.json`, `agents.json`, `navigation.json`; point the OpenAPI at the site's real form endpoint; add `data-action`/`data-action-type`/`data-action-label` to existing CTAs.
-   - Category 1 (15%): `llms.txt` + `llms-full.txt` written from the site's actual pages; add `@astrojs/sitemap` + `@puralex/astro-markdown-for-agents` integrations; RSS if there's article content.
-   - Category 3 (12%): copy `src/lib/schema.ts`, add `@graph` JSON-LD per page archetype (see `structured-data-patterns.md` for the archetype table).
-   - Category 4/2: merge the template's head elements into the site's existing head component (don't replace it wholesale unless it's trivial); merge `robots.txt` bot allows into the existing file.
-   - Remaining categories per `framework.md` as budget allows.
-3. **Wire enforcement**: copy `scripts/validate-built-site.js` (+ `validate-headless.js`), add the `verify` script to package.json, trim the validator's `requiredFiles`/`requiredText` to match this site's real pages, then run it to green.
-4. Respect the site's conventions — its formatter, its component patterns, its content source (MDX/CMS). The framework is content-source-agnostic by design.
+Review the site beyond the scan's sample: route types, crawl policy, content output, discovery links, structured data, accessibility, forms, and real agent interfaces. Inspect relevant source and generated output; use browser or HTTP evidence where behavior requires it. Record the areas and pages you checked and what remains unreviewed. Never claim to have reviewed all code after sampling a few files.
 
-## Audit a site
+For each relevant report finding, trace the live evidence to its source owner. Confirm the issue, identify a deployment mismatch, mark it inapplicable with a reason, or leave it unresolved when evidence is missing. Keep code-only findings separate from engine findings. A report is evidence about the scanned deployment; it does not prove the local checkout has the same defect.
 
-1. Built output available: run `node /tmp/aio-framework/templates/scripts/validate-built-site.js` from the site root (needs `dist/`). Note: its `SITE_URL` const and required-file list assume the template site — read failures with judgment, distinguishing "missing AI artifact" from "template-specific expectation".
-2. Live URL: `node /tmp/aio-framework/templates/scripts/validate-headless.js <url>` (needs `playwright`; `@axe-core/playwright` optional for full a11y parity). Also fetch `/llms.txt`, `/robots.txt`, `/openapi.json`, `/mcp.json` directly and check CORS headers.
-3. Manual walk: for each of the 10 categories in `framework.md`, sample the relevant pages/files and score what's present vs required. `checklist.md` is the per-audit reference. Category 2 doctrine: a permissive `User-agent: * / Allow: /` robots.txt is NOT full credit — the audit warns when AI bots (GPTBot, ClaudeBot, PerplexityBot, …) are not explicitly named with their own `Allow: /` records. Explicit allows are a positive welcome signal; absence of blocking is merely neutral. Flag it as a gap and dock the category.
-4. Deliver the report in this shape:
+## 3. Decide what needs work
 
-```markdown
-# AI-Readiness Audit — <site>
-**Overall: <n>% weighted**
+Maintain a concise finding table:
 
-| Category | Weight | Score | Key gaps |
-|---|---|---|---|
-| 5. Agent surfaces | 18% | … | … |
-| 1. Content discoverability | 15% | … | … |
-| … all 10 rows, weight order …
+| Audit ID or code finding | Page and report evidence | Source file:line / setting | Assessment | Proposed fix | Proof needed |
+|---|---|---|---|---|---|
 
-## Top fixes by impact
-1. <fix> — category, weight, effort, exact artifact to add
-2. …
-```
+Order work by access blockers, relevant scored failures, then other demonstrated usability or correctness defects. Review advisory findings against real site needs. Explain shared causes once when several findings point to one component.
 
-Score each category as the fraction of its applicable audits passing; weight-sum for the overall. Mark inapplicable audits (commerce on a non-store) as excluded, not failed.
+Preserve the engine's status, tier, evidence grade, and skipped/not-applicable reasons. Do not turn missing optional files into scored failures. Do not add interfaces or schema solely to increase a score. A static MCP description is not an MCP server. Content, product data, actions, and crawler permissions must match the site's real purpose and owner policy.
 
-## Gotchas that cost real points
+## 4. Implement when requested
 
-- `trailingSlash: "always"` + `build.format: "directory"` — mismatched URLs create redirect chains (audit 1.x) and break canonical/markdown-alternate links.
-- JSON-LD must go through `JSON.stringify` (`set:html`) — hand-written blocks with unescaped chars fail parsing and zero out category 3.
-- `lastmod` only from real content dates. Never stamp build time — crawlers learn to distrust it.
-- COOP/COEP/CORP headers are commented out in the templates on purpose: `require-corp` silently breaks cross-origin images/fonts.
-- `speakable` cssSelectors must match elements that exist on the page.
-- The placeholder scan in the validator is the final gate: any `$TOKEN` in dist fails the build, including content tokens init.mjs tolerates.
-- Forms must work without JS and without CAPTCHA (honeypot instead) — CAPTCHA blocks the agents category 5 is courting.
+Use the project's existing stack, commands, patterns, and deployment model. Patch the layer that owns the problem. Preserve unrelated work, existing content, and working behavior. Add regression proof for behavior changes where it meaningfully protects the fix.
+
+No framework clone, Astro dependency, template copy, or fixed service-site validator is required. Templates may target Astro or other frameworks; select one only when it matches the task and stack. Read [references/templates.md](references/templates.md) when scaffolding or borrowing a template feature. Do not fetch the whole repository merely to audit another stack.
+
+For CMS or hosting changes outside available access, state the exact setting and required owner action. Do not mark the finding fixed.
+
+## 5. Verify and report
+
+Run checks appropriate to the changed behavior using the project's tools. Inspect generated HTML when relevant. Check browser behavior and HTTP responses when the finding depends on them.
+
+After changes reach an authorized deployment, repeat the scan with the same version, target, page-type declaration, and options in a new directory. Compare findings and coverage, not only scores. Without deployment access, report **fixed locally; deployed rescan pending**. Do not rescan unchanged production and claim it validates local changes.
+
+Return the report paths, key findings with code evidence, completed changes, checks run, coverage limits, and next required actions. Clearly distinguish engine-confirmed results, code observations, local fixes, deployed verification, and unresolved work. A high score does not guarantee citations, rankings, or completed actions.

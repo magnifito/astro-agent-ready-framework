@@ -17,7 +17,8 @@
     "preview": "astro preview",
     "astro": "astro",
     "format": "prettier --write \"src/**/*.{astro,css,js,ts}\" \"scripts/**/*.js\" \"public/**/*.json\" \"*.{json,md}\"",
-    "clean": "rimraf dist .astro node_modules"
+    "clean": "rimraf dist .astro node_modules",
+    "audit:agent": "agent-lighthouse"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.8",
@@ -39,7 +40,8 @@
     "prettier-plugin-tailwindcss": "^0.7.2",
     "rimraf": "^6.1.3",
     "tailwindcss": "^4.2.2",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "@forkpoint/agent-lighthouse": "4.2.2"
   },
   "overrides": {
     "vite": "^7.3.2"

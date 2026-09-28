@@ -1,4 +1,6 @@
-// Build-time AI-readiness regression test.
+// Build-time regression test for this starter site contract.
+// This is not the Agent Lighthouse engine and does not produce its scores.
+// Optional resources are required here only because this starter advertises them.
 // Run after `astro build`. Fails the build if any required file,
 // text fragment, or JSON key is missing from dist/.
 //

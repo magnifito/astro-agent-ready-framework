@@ -1,3 +1,5 @@
+// Local browser smoke checks for the starter contract, not an Agent Lighthouse scan.
+// Numeric audit references below belong to the legacy framework.
 // Optional post-deploy smoke test. Drives a real headless browser at the deployed
 // URL and asserts signals a production AI agent would care about:
 //   - HTML is server-rendered (initial content ≥80% of post-JS content)

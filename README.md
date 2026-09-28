@@ -1,53 +1,63 @@
 # AIO Framework for Astro Static Sites
 
-A pragmatic framework for making Astro static sites AI-ready. Every item is tied to a specific audit from the canonical audit metadata (`ucp-analysis/apps/audit/src/data/audit-metadata.json` — **200 audits** across 10 categories) and to a concrete artifact (file, component, integration, header) that produces it.
+Astro starter files and implementation guidance aligned with [Agent Lighthouse](https://forkpoint.github.io/agent-lighthouse/). Agent Lighthouse owns the audit rules, categories, evidence grades, and scores. This repository supplies site patterns and local regression checks.
 
-Terminology:
-- **AIO** — AI Optimization. Umbrella term covering classic SEO + the following:
-- **AEO** — Answer Engine Optimization. Direct, answer-formatted content for AI assistants.
-- **GEO** — Generative Engine Optimization. Cross-linking, trust signals, unique data so LLMs cite you.
-- **AI crawler surface** — robots.txt directives, CORS, permissions for LLM bots.
-- **Agent surface** — OpenAPI, MCP discovery, WebMCP manifest, `data-action` attributes.
+The integration pins Agent Lighthouse **4.2.2**. Its published registry contains **215 checks across 8 categories**: 164 scored, 48 advisory (`informative`), and 3 experimental. These are registry counts, not passes or a promise of complete template coverage.
 
-## Why this framework
+## Use the framework
 
-The Moesica.com audit (see `context/audit.md`) scored 18 of 156 executed audits on first pass. The canonical metadata defines 200 total audits (the extra 33 activate on specific page types — commerce, HowTo, local business, authored content, pricing). Applying this framework covers all 200 audits by producing:
-- `llms.txt`, `llms-full.txt`, per-page Markdown alternates
-- Sitemap (generated + static), RSS with full content
-- JSON-LD graph: `Organization` (w/ logo + `sameAs` + `potentialAction`), `WebSite` with `SearchAction`, `WebPage`, `OfferCatalog`, `Service` (w/ `potentialAction`), `Article` (w/ `datePublished` + `dateModified` + `Person` author), `Person` with `jobTitle` + `sameAs` + `affiliation`, `FAQPage`, `BreadcrumbList`, `SpeakableSpecification`, `ConfirmAction`, `HowTo`, `LocalBusiness`, `Offer`, `Review`/`AggregateRating`, `Product` (w/ GTIN/UPC/MPN/brand/category)
-- Machine-readable endpoints: `ai-catalog.json`, `brand.json`, `agents.json`, `mcp.json` (also at `.well-known/mcp.json`), `.well-known/ai-plugin.json`, `openapi.json`, `navigation.json`, `humans.txt`, `.well-known/security.txt`
-- Typed JSON-LD `@graph` builders (`src/lib/schema.ts`) and example archetype pages (services, insights, authors, privacy, terms, 404)
-- Head links to every machine-readable resource (`rel="alternate"`, `rel="service-desc"`, `rel="sitemap"`, `rel="prev"` / `rel="next"` for pagination)
-- `data-action-*` attributes on every CTA for agent action discovery
-- `<meta name="author">` on every content page, named `Person` bylines with author pages at `/authors/<slug>/`
-- `<article>`, `<aside>`, `<time datetime>`, `<dfn>`/`<dl>`, `<address>`, `<table>` and `<ol>` conventions for RAG-friendly chunking + freshness signals
-- robots.txt with explicit AI bot allows
-- Apache `.htaccess` with security headers, CORS on AI files, long-cache on `_astro/`
-- Build validator (`scripts/validate-built-site.js`) that fails the build if any of the above regress, a headless axe-core smoke test (`scripts/validate-headless.js`), a token-replacing bootstrap (`scripts/init.mjs`), an IndexNow ping (`scripts/indexnow-ping.mjs`), and a CI workflow (`.github/workflows/verify.yml`)
+1. Read [framework.md](framework.md) for the eight categories and the limits of static templates.
+2. For a new site, copy `templates/` into its own directory. Run `npm run init` there. Use real business facts and finish the remaining content tokens.
+3. For an existing site, keep its pages and conventions. Add only the pieces supported by real gaps.
+4. Run `npm install`, commit the generated lockfile in the site repository, then run `npm run verify`. This builds the site and checks its local starter contract.
+5. After deployment, run `npm run verify:deployed` for the browser smoke checks.
+6. Run `npm run audit:agent -- https://your-domain.com --output terminal,html,json --output-dir reports/baseline` for the Agent Lighthouse report. Scan other relevant page URLs separately. Keep the URL, options, tool version, coverage, and report with each result.
+7. Fix relevant scored failures. Read advisory findings separately. Repeat the scan with the same options and compare its evidence.
 
-## Files in this folder
+The audit command sends requests to the supplied URL. Use a reachable deployed or staging site. Local `dist/` checks cannot prove deployed headers, crawler access, or action execution.
+
+## Files
 
 | File | Purpose |
 |---|---|
-| `framework.md` | The ten categories, what each means, what passes it, what it requires of the Astro site. |
-| `checklist.md` | Every check from the audit (156), grouped, with status against this framework and the fix. |
-| `astro-implementation.md` | How Astro config, integrations, components, and `public/` files map to the checks. |
-| `structured-data-patterns.md` | JSON-LD graph skeletons per page archetype (home, service, service index, article, collection, confirm, 404). |
-| `templates/` | Copy-paste starter files. Replace `$SITE_*` placeholders. |
+| [framework.md](framework.md) | Current categories, scoring rules, priorities, and implementation boundaries. |
+| [checklist.md](checklist.md) | Generated inventory of current audit IDs, tiers, grades, and weights. |
+| [astro-implementation.md](astro-implementation.md) | Astro configuration, integrations, components, and hosting recipes. |
+| [structured-data-patterns.md](structured-data-patterns.md) | JSON-LD examples; use only types and facts that match visible content. |
+| [templates/](templates/) | Service-site starter, schema builders, local validators, and deployed audit command. |
+| [skills/aio-framework/SKILL.md](skills/aio-framework/SKILL.md) | Stack-neutral report assessment, code review, and verified fixes for coding agents. |
 
-## How to use on a new Astro site
+## What the starter proves
 
-1. Read `framework.md` to understand the ten categories.
-2. Copy `templates/` into the new site, then run `npm run init` — it rewrites every `$TOKEN` (interactively or from `site.config.json`), generates the IndexNow key, and reports remaining content tokens as a TODO list (replaces the old `sed` workflow).
-3. Wire the integrations in `templates/astro.config.mjs` (sitemap + `@puralex/astro-markdown-for-agents`).
-4. Render pages through `BaseLayout.astro` (which wires `SeoHead.astro` + landmarks).
-5. Build JSON-LD with the typed `src/lib/schema.ts` builders (or copy the `structured-data-patterns.md` graphs) per page archetype.
-6. Run `npm run verify` (build + validate). The validator enforces the critical surface; `npm run verify:deployed` runs the headless axe-core smoke test against the live URL.
-7. Re-run the external AIO audit. Target 80%+ readiness.
+A passing build validator proves its configured file, text, and structure checks. It does not produce an Agent Lighthouse score. The starter includes optional conventions such as `llms.txt`, custom resource catalogs, and static action descriptions. Their presence does not prove consumer support, citations, or working MCP/WebMCP tools.
 
-## Non-goals
+Keep crawler permissions consistent with the site owner's policy. Publish API descriptions only for real interfaces. A static site can describe an external action, but its operator must supply and test that service.
 
-- No opinion on CSS, frontend framework, or content system. This framework assumes Astro but works with any content source (MDX, CMS, file-based data).
-- No dynamic server endpoints. Everything here works for pure static output deployed to Apache, Nginx, or a CDN.
-- Commerce checks (products, reviews, return policy) are scoped out unless the site is a store. The framework notes where to extend.
-# astro-agent-ready-framework
+Commerce, authentication, payments, live MCP endpoints, and other server behavior need site-specific work. No readiness score guarantees AI mentions, rankings, or successful transactions.
+
+## Maintain the audit inventory
+
+From this repository root:
+
+```sh
+npm ci
+npm run checklist:check
+# After an intentional Agent Lighthouse version update:
+npm run checklist:generate
+```
+
+Update the exact core dependency here and CLI dependency in `templates/package.json` together. Review upstream rule changes, regenerate the checklist, and rerun validation. Keep the generated root lockfile in version control.
+
+The [scoring guide](https://forkpoint.github.io/agent-lighthouse/docs/scoring/) and [CLI reference](https://forkpoint.github.io/agent-lighthouse/docs/cli/) explain report interpretation and scan options. The package version used for a run controls its behavior.
+
+## Use the skill on any stack
+
+The `aio-framework` skill accepts a URL, an Agent Lighthouse report, or a local project. It reads the report, traces findings through the code and hosting settings, and proposes or applies fixes within the requested scope. It does not require Astro or a clone of this repository. Its scan and code-review references ship inside the skill folder.
+
+Example requests:
+
+- “Audit this website with Agent Lighthouse and check the code behind its findings.”
+- “Use this report to fix the confirmed issues in this project. Verify the changes.”
+- “Review this local project for AI readiness. No deployment exists yet.”
+
+Local-only reviews produce code findings without an invented Lighthouse score. Templates are optional and may target different frameworks. The repo currently ships the Astro starter in `templates/`. For other stacks, the skill uses the project’s native tools; additional starters can be added and verified independently. See the [template selection guide](skills/aio-framework/references/templates.md).

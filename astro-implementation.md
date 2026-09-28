@@ -1,12 +1,16 @@
 # Astro Implementation Guide
 
-How each framework requirement maps to concrete Astro files, config, and integrations. Pair with the `templates/` folder for drop-in starters.
+Astro recipes for the service-site starter. Pair with `templates/` and the current [framework](framework.md).
+
+The numeric audit references in these recipes are **legacy IDs**, not current Agent Lighthouse checks. Resolve them through `@forkpoint/agent-lighthouse-core/migration-map.json`. [checklist.md](checklist.md) supplies current slugs, tiers, and evidence grades. These recipes do not establish audit passes or fixed scoring gains.
+
+Optional discovery files and protocol descriptions require site-specific choices. In particular, static MCP JSON is not a live MCP server. Keep OpenAPI and action descriptions only when they match a working interface.
 
 ## Recommended Astro integrations
 
-Install the base set for every AIO site. Add variant-specific plugins only when the site needs them.
+The starter includes the set below. Retain each integration only when the site uses its output. RSS needs article content; Markdown alternates and generated OG images are optional.
 
-### Base set (install on every AIO Astro site)
+### Starter integrations
 
 | Plugin | Purpose | Audit coverage |
 |---|---|---|
@@ -26,7 +30,7 @@ Install the base set for every AIO site. Add variant-specific plugins only when 
 | `@astrojs/partytown` | Any site with analytics / third-party tracking | 13.4, 8.14 (move trackers off main thread) |
 | `astro-icon` | Any site w/ icon-only CTAs | 7.8 |
 | `@astrojs/mdx` | Publisher / media / docs variant | content authoring |
-| `@astrojs/image` or `astro:assets` (built-in) | Multi-modal §11 (responsive images) | 11.3, 8.15 |
+| `@astrojs/image` or `astro:assets` (built-in) | Sites with responsive images | 11.3, 8.15 |
 
 ### Explicitly declined
 
@@ -327,7 +331,7 @@ The `SeoHead.astro` component links to the markdown alternate via:
 
 Run as `npm run validate:build`. Exits non-zero on any failure, which fails CI and deploy.
 
-Extend it per site: add new required pages, new text fragments, new JSON keys as the site grows. This is your AI-readiness regression test.
+Extend it per site: add new required pages, new text fragments, new JSON keys as the site grows. This checks the local site contract. Run `npm run audit:agent -- https://your-domain.com --output terminal,html,json` for an engine report on the deployed site.
 
 ## Apache `.htaccess` (or equivalent)
 

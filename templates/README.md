@@ -1,6 +1,25 @@
 # Templates
 
-Copy-paste starters. Replace placeholders, then build.
+Service-site starter. Replace placeholders with real facts, then build.
+
+## Agent Lighthouse validation
+
+`npm run verify` checks this starter's local contract. `npm run verify:deployed` checks the deployed site in a browser. Neither command produces an Agent Lighthouse score.
+
+After `npm install`, keep the generated `package-lock.json` in your site repository so `npm ci` works in CI. Run the pinned audit CLI against the deployed or staging URL:
+
+```sh
+npm run audit:agent -- https://your-domain.com --output terminal,html,json --output-dir reports/baseline
+```
+
+Keep the report's validity, coverage, version, and skipped-check reasons. Run again for other relevant page URLs. An unscored scan does not establish readiness. Set a score threshold only after reviewing a valid baseline.
+
+The `agent-lighthouse` job in `.github/workflows/verify.yml` runs on manual dispatch with an explicit `audit_url`. It retains reports even when the scan fails. It describes the supplied deployment, which may differ from the checked-out commit.
+
+Optional files such as `llms.txt`, custom catalogs, and static MCP descriptions are starter conventions. They do not guarantee scoring credit or a working protocol. The static `mcp.json` files are not MCP servers. The legacy plugin manifest does not establish current ChatGPT support. Remove unused resources, their head links, and corresponding validator expectations together.
+
+The tables below retain **legacy numeric audit references** for the recipes. They are not current Lighthouse IDs or proof of coverage. Use [the current checklist](../checklist.md) and the pinned core package's `migration-map.json` for current rules.
+
 
 ## Placeholder reference
 
